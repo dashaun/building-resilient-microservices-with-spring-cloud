@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: results-service
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URI:http://localhost:8888}
+  datasource:
+    url: jdbc:h2:mem:results
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  h2:
+    console:
+      enabled: true
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: 5672
+    username: guest
+    password: guest
+  cloud:
+    # Tell Spring Cloud Function which bean is the message handler.
+    function:
+      definition: surveyVote
+    stream:
+      bindings:
+        surveyVote-in-0:
+          destination: bbq-votes
+          # A consumer group makes delivery durable + load-balanced across replicas.
+          group: results-service
+          content-type: application/json
+
+server:
+  port: ${SERVER_PORT:8083}
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+
+logging:
+  level:
+    com.bbqwednesday: DEBUG

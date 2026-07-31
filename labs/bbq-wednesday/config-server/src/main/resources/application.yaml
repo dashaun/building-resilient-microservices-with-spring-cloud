@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: config-server
+  profiles:
+    # 'native' serves configuration from the filesystem instead of a Git repo.
+    # In production you would point spring.cloud.config.server.git.uri at a repo;
+    # native keeps this workshop fully offline. The client behaviour is identical.
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          # Relative to the config-server module dir (mvn spring-boot:run workdir).
+          search-locations: ${CONFIG_REPO:file:../config-repo}
+
+server:
+  port: 8888
+
+# The Config Server is itself a Eureka client, so other services can find it
+# by name (spring.config.import=optional:configserver:) instead of a hard URL.
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true

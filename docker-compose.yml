@@ -1,0 +1,38 @@
+# Backing services for BBQ Wednesday.
+#   docker compose up -d      # start everything
+#   docker compose down       # stop
+services:
+  # Message broker for Spring Cloud Stream (vote events).
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: bbq-rabbitmq
+    ports:
+      - "5672:5672"     # AMQP
+      - "15672:15672"   # Management UI (guest/guest)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backs the gateway's RequestRateLimiter (distributed token buckets).
+  redis:
+    image: redis:7-alpine
+    container_name: bbq-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # One container: OTLP collector + Tempo (traces) + Loki (logs) + Prometheus
+  # (metrics) + Grafana. Traces land at :4318; Grafana UI at :3000.
+  grafana-lgtm:
+    image: grafana/otel-lgtm:latest
+    container_name: bbq-lgtm
+    ports:
+      - "3000:3000"   # Grafana UI
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP

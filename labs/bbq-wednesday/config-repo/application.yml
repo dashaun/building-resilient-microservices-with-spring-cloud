@@ -1,0 +1,20 @@
+# Shared configuration served to EVERY service by the Config Server.
+# Anything here is overridden by a service-specific file (survey-service.yml, etc.).
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # The workshop inspects /actuator/refresh, /busrefresh, /circuitbreakers, /env, /health.
+        include: "health,info,refresh,busrefresh,circuitbreakers,circuitbreakerevents,ratelimiters,env,metrics"
+  endpoint:
+    health:
+      show-details: always
+
+# Every client registers with the same Eureka, delivered centrally.
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true

@@ -1,0 +1,2 @@
+# Run `sdk env` in this directory to switch to the workshop JDK.
+java=21.0.11-librca

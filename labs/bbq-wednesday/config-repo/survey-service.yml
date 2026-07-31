@@ -1,0 +1,57 @@
+# ---------------------------------------------------------------------------
+# survey-service — the BBQ Wednesday questions live HERE, not in the jar.
+# Change a question, hit POST /actuator/refresh, no rebuild, no redeploy.
+# ---------------------------------------------------------------------------
+survey:
+  questions:
+    - id: burnt-ends
+      text: "Who has the best burnt ends in KC?"
+      answers:
+        - "Arthur Bryant's"
+        - "Gates Bar-B-Q"
+        - "Joe's Kansas City"
+        - "LC's Bar-B-Q"
+        - "Q39"
+    - id: sauce
+      text: "How do you take your KC BBQ sauce?"
+      answers:
+        - "Original — sweet & thick"
+        - "Spicy"
+        - "Vinegar-forward"
+        - "Dry rub, no sauce"
+    - id: best-side
+      text: "Best KC BBQ side?"
+      answers:
+        - "Burnt end beans"
+        - "Cheesy corn"
+        - "Coleslaw"
+        - "Fries"
+        - "Pickles & white bread"
+
+# Resilience4j — protecting the survey-service -> results-service read.
+# These land on the CLIENT via the Config Server, so ops can retune them live.
+resilience4j:
+  circuitbreaker:
+    instances:
+      resultsService:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+  retry:
+    instances:
+      resultsService:
+        max-attempts: 3
+        wait-duration: 200ms
+        retry-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.client.ResourceAccessException
+  ratelimiter:
+    instances:
+      submitVote:
+        # Throttle: at most 5 votes accepted per second, fail fast after 0ms wait.
+        limit-for-period: 5
+        limit-refresh-period: 1s
+        timeout-duration: 0

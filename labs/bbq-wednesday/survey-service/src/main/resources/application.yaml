@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: survey-service
+  # Pull configuration (and the BBQ questions) from the Config Server on startup.
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URI:http://localhost:8888}
+  datasource:
+    url: jdbc:h2:mem:votes
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  h2:
+    console:
+      enabled: true
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: 5672
+    username: guest
+    password: guest
+  cloud:
+    stream:
+      bindings:
+        surveyVote-out-0:
+          destination: bbq-votes
+          content-type: application/json
+
+server:
+  port: ${SERVER_PORT:8081}
+
+# Distributed tracing: sample everything and ship spans to the OTLP collector
+# (Grafana LGTM at :4318). eureka + actuator exposure arrive from the Config Server.
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+
+logging:
+  level:
+    com.bbqwednesday: DEBUG

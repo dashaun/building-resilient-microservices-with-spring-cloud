@@ -1,0 +1,356 @@
+<!-- .slide: data-background-color="#191e1e" -->
+
+# Module 1
+
+## Centralized Configuration
+
+Spring Cloud Config Server & Client · ~30 min
+
+Notes:
+Minute 20.
+We start with config because every other service depends on it and it needs zero infrastructure — just the JVM. Press Down to walk the module; Right skips ahead if you're ever short on time.
+
+Likely questions
+- Q: Why config first? A: It's the lowest-friction win and the thing that quietly ruins microservices when done badly (config drift across environments).
+
+---
+
+## The Problem: Config in the Jar
+
+```text
+survey-service.jar
+ └── application.yaml   ← questions, thresholds, endpoints baked in
+```
+
+- A new BBQ question → **rebuild + redeploy**.
+- Prod vs staging differ → **a different jar per environment**.
+- A secret rotates → **rebuild**.
+- Ten services × three environments → **thirty places to drift**.
+
+> Configuration changes far more often than code. Stop shipping it inside the code.
+
+Notes:
+Minute 20-23.
+Name the pain everyone has felt: a one-line property change triggering a full release. The goal is to move configuration OUT of the deployable and behind an API.
+
+Likely questions
+- Q: Isn't an env var enough? A: For a handful, yes. It falls apart at scale: no history, no per-service inheritance, no refresh, secrets sprawled across platforms.
+
+---
+
+## Spring Cloud Config: Two Halves
+
+```text
+        ┌──────────────────┐
+        │   config-server  │  :8888   reads a backend (git or filesystem)
+        └────────┬─────────┘
+                 │  HTTP: GET /survey-service/default
+        ┌────────▼─────────┐
+        │  config CLIENT   │  survey-service, results-service
+        └──────────────────┘
+```
+
+- **Server** — one endpoint, backed by a versioned source of truth.
+- **Client** — asks for its config *by application name* at startup.
+
+Notes:
+Minute 23-26.
+The server is a tiny Spring Boot app. The clients don't hardcode values; they fetch them keyed on `spring.application.name` and the active profile. Git backing gives you audit + rollback for free.
+
+Likely questions
+- Q: Where do secrets go? A: Not here in plaintext for real systems — back the server with Vault, or use a secrets manager. Config Server has a Vault backend.
+- Q: What if the server is down? A: Clients cache last-known config, and we mark the import `optional:` so startup isn't blocked. Config-first-boot ordering matters — we'll cover it.
+
+---
+
+## The Config Server
+
+```java
+@SpringBootApplication
+@EnableConfigServer
+public class ConfigServerApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(ConfigServerApplication.class, args);
+    }
+}
+```
+
+That annotation is the whole server. The backend is configuration:
+
+```yaml
+spring:
+  profiles:
+    active: native            # filesystem instead of git (offline lab)
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: ${CONFIG_REPO:file:../config-repo}
+server:
+  port: 8888
+```
+
+Notes:
+Minute 26-29.
+`@EnableConfigServer` + one dependency = a Config Server. We use the `native` (filesystem) backend so the workshop is offline. In production you'd delete the `native` profile and set `spring.cloud.config.server.git.uri` — the client contract is identical either way.
+
+Likely questions
+- Q: git vs native? A: Same client behavior. Git adds versioning, PR review, and rollback. Native is perfect for a laptop.
+- Q: Can it serve YAML and properties? A: Both, plus profile- and label-specific files.
+
+---
+
+## The Backend: config-repo/
+
+```text
+config-repo/
+├── application.yml          # shared by EVERY service
+├── survey-service.yml       # the BBQ questions live here
+└── results-service.yml
+```
+
+`survey-service.yml`:
+
+```yaml
+survey:
+  questions:
+    - id: burnt-ends
+      text: "Who has the best burnt ends in KC?"
+      answers: ["Arthur Bryant's", "Gates Bar-B-Q",
+                "Joe's Kansas City", "LC's Bar-B-Q", "Q39"]
+```
+
+Notes:
+Minute 29-31.
+File name = application name. `application.yml` is inherited by all; a service-named file overrides it. The BBQ questions are pure configuration — that's why a new question needs no rebuild.
+
+Likely questions
+- Q: How does inheritance resolve? A: `application.yml` first, then `{service}.yml`, then `{service}-{profile}.yml`, most specific wins.
+
+---
+
+## The Client Side
+
+One property turns any Spring Boot app into a config client:
+
+```yaml
+spring:
+  application:
+    name: survey-service       # ← the filename the server looks up
+  config:
+    import: optional:configserver:http://localhost:8888
+```
+
+```xml
+<dependency>
+  <groupId>org.springframework.cloud</groupId>
+  <artifactId>spring-cloud-starter-config</artifactId>
+</dependency>
+```
+
+Notes:
+Minute 31-34.
+`spring.config.import=configserver:...` is the modern client (no more bootstrap.yml). `optional:` means "boot even if the server is unreachable" — important so a config outage doesn't cascade into a total outage. The application NAME is the lookup key.
+
+Likely questions
+- Q: Why `optional:`? A: Resilience. Drop it and the app refuses to start without the server. Keep last-known-good behavior instead.
+- Q: bootstrap.yml? A: Gone. `spring.config.import` replaced it years ago.
+
+---
+
+## Config Becomes Typed Objects
+
+The delivered `survey.*` properties bind to a class:
+
+```java
+@Component
+@ConfigurationProperties(prefix = "survey")
+public class SurveyQuestions {
+    private List<Question> questions;
+    public static class Question {
+        private String id;
+        private String text;
+        private List<String> answers;
+        // getters / setters
+    }
+    // getters / setters
+}
+```
+
+Remote config → compiler-checked Java. No `@Value` string soup.
+
+Notes:
+Minute 34-36.
+This is the payoff: configuration arrives as a real object graph. survey-service didn't ship the questions — it received them and bound them to types.
+
+Likely questions
+- Q: Relaxed binding? A: Yes — `survey.questions[0].id` maps to nested records/POJOs, kebab or camel case.
+
+---
+
+## Exercise 1 — Wire the Client (10 min)
+
+Start the two infrastructure pieces, then survey-service:
+
+```bash
+cd labs/bbq-wednesday
+(cd eureka-server  && ../mvnw spring-boot:run) &   # :8761
+(cd config-server  && ../mvnw spring-boot:run) &   # :8888
+(cd survey-service && ../mvnw spring-boot:run) &   # :8081
+```
+
+1. Confirm the server serves config:
+   `curl localhost:8888/survey-service/default`
+2. Confirm the client received the questions:
+   `curl localhost:8081/questions`
+
+Do it first. The answer is next.
+
+Notes:
+Minute 36-46.
+Goal: see config flow server → client. The `/survey-service/default` endpoint returns the raw property sources the server resolved. `/questions` proves survey-service bound them. If `/questions` is empty, the client didn't import config — check `spring.config.import` and the dependency.
+
+Likely questions
+- Q: `/questions` returns null/empty? A: The import is missing or the server isn't up yet. Restart survey-service after config-server is listening.
+- Q: Order matters? A: Start config-server before its clients so first-boot resolution succeeds. `optional:` keeps a late start from crashing.
+
+---
+
+## Answer 1 — Config Flowing
+
+`curl localhost:8888/survey-service/default` →
+
+```json
+{ "name": "survey-service", "profiles": ["default"],
+  "propertySources": [
+    { "name": ".../survey-service.yml",
+      "source": { "survey.questions[0].id": "burnt-ends", ... } }
+  ] }
+```
+
+`curl localhost:8081/questions` →
+
+```json
+[ { "id": "burnt-ends",
+    "text": "Who has the best burnt ends in KC?",
+    "answers": ["Arthur Bryant's", "Gates Bar-B-Q", ...] } ]
+```
+
+The jar never contained a single BBQ question.
+
+Notes:
+Minute 46-48.
+Land the point: two services, and the questions existed only in config-repo. Change the file, and every survey-service instance can pick it up — which is the next slide.
+
+---
+
+## Secrets: Don't Store Them in the Clear
+
+Config Server can **encrypt** values so the backend holds ciphertext:
+
+```bash
+# with an encrypt.key set, ask the server to encrypt a secret:
+curl localhost:8888/encrypt -d 's3cr3t-bbq-sauce'
+# → 682bc583f4641835...   (store THIS in config-repo)
+```
+
+```properties
+# config-repo/survey-service.yml — safe to commit
+spring.rabbitmq.password: '{cipher}682bc583f4641835...'
+```
+
+The client receives the value **already decrypted**. For real secret
+management, back the server with **HashiCorp Vault** instead of git.
+
+Notes:
+Minute 48-50 (optional — skip if pressed).
+The 2015-era point still holds: never commit plaintext secrets. Config Server decrypts `{cipher}`-prefixed values on the way to the client, using a symmetric `encrypt.key` (env `ENCRYPT_KEY`) or an asymmetric keystore. To try it live: start config-server with `ENCRYPT_KEY=somekey`, POST to `/encrypt`, paste the result behind `{cipher}`. Vault is the production answer — Config Server has a first-class Vault backend, so the client contract doesn't change.
+
+Likely questions
+- Q: Symmetric or asymmetric? A: Symmetric `encrypt.key` is simplest; an RSA keystore lets you encrypt anywhere and decrypt only on the server. Both use the same `{cipher}` marker.
+- Q: Is `{cipher}` decrypted before the client sees it? A: By default yes, server-side. You can also ship ciphertext and decrypt on the client.
+
+---
+
+## Refresh Without Redeploy
+
+Change config at runtime — no restart:
+
+```bash
+# 1. edit config-repo/survey-service.yml (add an answer)
+# 2. tell the running service to re-read:
+curl -X POST localhost:8081/actuator/refresh
+```
+
+`@ConfigurationProperties` beans (like `SurveyQuestions`) re-bind
+**automatically** on refresh. Other beans opt in with `@RefreshScope`:
+
+```java
+@RefreshScope
+@Component
+class BreakerTuning {           // re-created on the next /actuator/refresh
+    @Value("${survey.threshold}") int threshold;
+}
+```
+
+`/actuator/refresh` returns the list of keys that changed.
+
+Notes:
+Minute 48-50.
+`@RefreshScope` beans are recreated on the next refresh so they pick up new values; `/actuator/refresh` is the actuator endpoint that triggers it. At fleet scale you'd fan this out with Spring Cloud Bus over RabbitMQ instead of curling each instance — nice foreshadowing of the messaging module.
+
+Likely questions
+- Q: Everything refreshable? A: `@ConfigurationProperties` re-binds automatically; other beans need `@RefreshScope`. Some things (ports, datasource) still want a restart.
+- Q: Refresh 200 instances? A: Spring Cloud Bus broadcasts one `/actuator/busrefresh` over the broker. Same RabbitMQ we use for votes.
+
+---
+
+## Refresh the Whole Fleet: Spring Cloud Bus
+
+`/actuator/refresh` hits **one** instance. Curling 200 of them is absurd.
+
+```xml
+<dependency>
+  <groupId>org.springframework.cloud</groupId>
+  <artifactId>spring-cloud-starter-bus-amqp</artifactId>
+</dependency>
+```
+
+```bash
+# hit ONE instance; every instance re-reads config:
+curl -X POST localhost:8081/actuator/busrefresh
+```
+
+```text
+POST /busrefresh ─▶ survey-service:8081
+                      └─ RefreshRemoteApplicationEvent ─▶ [ RabbitMQ ]
+                            ├─▶ survey-service:8082  (refreshes)
+                            └─▶ results-service:8083 (refreshes)
+```
+
+Notes:
+Minute 50 (optional bonus; needs RabbitMQ, up since setup).
+Spring Cloud Bus links every instance over the same broker we use for votes. POST `/actuator/busrefresh` to any single node and it publishes a refresh event; every subscriber re-reads its configuration. This is the fleet-scale answer to the one-at-a-time refresh, and it's a nice preview of the messaging module — config management riding on the message bus.
+
+Likely questions
+- Q: Does the Config Server push changes automatically? A: Not by itself — Bus still needs a trigger (`/busrefresh`, or a `/monitor` webhook from your git host). The broadcast is the automatic part.
+- Q: Same broker as votes? A: Yes, RabbitMQ. Bus and Stream can share it; in production you might separate them.
+
+---
+
+## Module 1 Checkpoint
+
+You can now:
+
+- run a **Config Server** with `@EnableConfigServer` + a backend;
+- turn any app into a **client** with one `spring.config.import`;
+- serve environment-specific values with **no rebuild**;
+- bind remote config to **typed** `@ConfigurationProperties`;
+- **refresh** one service with `/actuator/refresh`, or the **whole fleet** with Bus;
+- keep secrets out of the clear with **`{cipher}`** encryption / Vault.
+
+**Next: the services can read config — but how do they find each other?**
+
+Notes:
+Minute 50.
+Hand off to Discovery. We've been hardcoding `localhost:8888` and `localhost:8761`; discovery removes the last hardcoded hosts. Keep eureka-server and config-server running.

@@ -1,0 +1,11 @@
+# ---------------------------------------------------------------------------
+# results-service — centrally managed knobs for the live tally aggregator.
+# ---------------------------------------------------------------------------
+results:
+  # How the UI polls; surfaced here so we can demonstrate a live refresh.
+  poll-interval-ms: 2000
+
+# Demonstrates environment-specific values without repackaging:
+# a "prod" profile could ship a different banner via results-service-prod.yml.
+info:
+  tally: "BBQ Wednesday — live from Kansas City"

@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: eureka-server
+
+server:
+  port: 8761
+
+# Don't register itself as a client
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+  # Disable self-preservation in dev
+  server:
+    enable-self-preservation: false
+
+logging:
+  level:
+    com.netflix.eureka: OFF
+    com.netflix.discovery: OFF

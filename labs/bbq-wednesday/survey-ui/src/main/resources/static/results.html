@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Results — BBQ Wednesday</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 BBQ Wednesday</h1>
+        <p class="tagline">The great Kansas City barbecue survey</p>
+
+        <nav class="nav-bar">
+            <a href="/" class="nav-link">Vote</a>
+            <a href="/results" class="nav-link active">Live Results</a>
+        </nav>
+
+        <section id="results-section">
+            <h2>Live Results</h2>
+            <div id="results-container">
+                <p class="loading">Loading charts…</p>
+            </div>
+        </section>
+
+        <div id="connection-status" class="status disconnected">
+            Loading…
+        </div>
+    </div>
+
+    <script src="/js/results.js"></script>
+</body>
+</html>

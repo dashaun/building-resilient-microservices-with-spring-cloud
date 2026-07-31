@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Building Resilient Microservices with Spring Cloud</title>
+    <link rel="stylesheet" href="./reveal.js/dist/reset.css">
+    <link rel="stylesheet" href="./reveal.js/dist/reveal.css">
+    <link rel="stylesheet" href="./reveal.js/dist/theme/simple.css">
+    <link rel="stylesheet" href="./reveal.js/dist/plugin/highlight/monokai.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Work+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --spring-green: #6db33f;
+            --spring-dark: #191e1e;
+            --spring-text: #4a4a4a;
+            --spring-heading: #111;
+            --spring-border: #ebf2f2;
+            --bbq-ember: #c0392b;
+        }
+        .reveal { font-family: 'Open Sans', sans-serif; font-size: 28px; color: var(--spring-text); line-height: 1.5; }
+        .reveal .slides { border-top: 5px solid var(--spring-green); }
+        .reveal h1, .reveal h2, .reveal h3 { font-family: 'Work Sans', sans-serif; color: var(--spring-heading); text-transform: none; letter-spacing: -0.02em; }
+        .reveal h1 { font-size: 2.1em; }
+        .reveal h2 { font-size: 1.5em; }
+        .reveal h3 { font-size: 1.1em; }
+        .reveal p { font-size: 0.9em; }
+        .reveal ul, .reveal ol { font-size: 0.84em; }
+        .reveal li { margin-bottom: 0.25em; }
+        .reveal a, .reveal code { color: var(--spring-green); }
+        .reveal pre { font-size: 0.5em; width: 100%; border-radius: 8px; box-shadow: 0 8px 15px rgba(0,0,0,.15); }
+        .reveal pre code { max-height: 520px; padding: 18px 22px; white-space: pre-wrap; background: var(--spring-dark); border-radius: 8px; }
+        .reveal table { font-size: 0.72em; }
+        .reveal table th { background: var(--spring-green); color: white; padding: 10px 16px; }
+        .reveal table td { padding: 8px 16px; border-bottom: 1px solid var(--spring-border); }
+        .reveal blockquote { border-left: 4px solid var(--spring-green); background: #f9fdf7; padding: 12px 20px; box-shadow: none; font-style: normal; }
+        .reveal section[data-background-color="#6db33f"] h1,
+        .reveal section[data-background-color="#6db33f"] h2,
+        .reveal section[data-background-color="#6db33f"] h3,
+        .reveal section[data-background-color="#6db33f"] p { color: white; }
+        .reveal section[data-background-color="#191e1e"] h1,
+        .reveal section[data-background-color="#191e1e"] h2,
+        .reveal section[data-background-color="#191e1e"] h3,
+        .reveal section[data-background-color="#191e1e"] p { color: white; }
+        .reveal section[data-background-color="#c0392b"] h1,
+        .reveal section[data-background-color="#c0392b"] h2,
+        .reveal section[data-background-color="#c0392b"] h3,
+        .reveal section[data-background-color="#c0392b"] p { color: white; }
+        .reveal .progress, .reveal .controls { color: var(--spring-green); }
+    </style>
+</head>
+<body>
+<div class="reveal">
+    <div class="slides">
+        <section data-markdown="intro.md"      data-separator="^\f" data-separator-vertical="^---$" data-separator-notes="^Notes:" data-charset="utf-8"></section>
+        <section data-markdown="config.md"      data-separator="^\f" data-separator-vertical="^---$" data-separator-notes="^Notes:" data-charset="utf-8"></section>
+        <section data-markdown="discovery.md"   data-separator="^\f" data-separator-vertical="^---$" data-separator-notes="^Notes:" data-charset="utf-8"></section>
+        <section data-markdown="resilience.md"  data-separator="^\f" data-separator-vertical="^---$" data-separator-notes="^Notes:" data-charset="utf-8"></section>
+        <section data-markdown="stream.md"      data-separator="^\f" data-separator-vertical="^---$" data-separator-notes="^Notes:" data-charset="utf-8"></section>
+        <section data-markdown="gateway.md"     data-separator="^\f" data-separator-vertical="^---$" data-separator-notes="^Notes:" data-charset="utf-8"></section>
+        <section data-markdown="tracing.md"     data-separator="^\f" data-separator-vertical="^---$" data-separator-notes="^Notes:" data-charset="utf-8"></section>
+        <section data-markdown="outro.md"       data-separator="^\f" data-separator-vertical="^---$" data-separator-notes="^Notes:" data-charset="utf-8"></section>
+    </div>
+</div>
+<script src="./reveal.js/dist/reveal.js"></script>
+<script src="./reveal.js/dist/plugin/markdown.js"></script>
+<script src="./reveal.js/dist/plugin/highlight.js"></script>
+<script src="./reveal.js/dist/plugin/notes.js"></script>
+<script>
+    Reveal.initialize({
+        hash: true,
+        slideNumber: 'c/t',
+        progress: true,
+        transition: 'slide',
+        width: 1200,
+        height: 800,
+        margin: 0.04,
+        plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+spring:
+  application:
+    name: gateway
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: 6379
+  cloud:
+    gateway:
+      server:
+        webflux:
+          # Auto-create a route per registered Eureka service (handy for demos).
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+          routes:
+            # Casting a vote: throttled by Redis + protected by the circuit breaker.
+            - id: survey-submit
+              uri: lb://survey-service
+              predicates:
+                - Path=/survey-service/submit
+                - Method=POST
+              filters:
+                - StripPrefix=1
+                - name: RequestRateLimiter
+                  args:
+                    key-resolver: "#{@voterKeyResolver}"
+                    redis-rate-limiter.replenishRate: 5
+                    redis-rate-limiter.burstCapacity: 10
+                - name: CircuitBreaker
+                  args:
+                    name: surveyService
+                    fallbackUri: forward:/fallback/survey
+            # All other survey-service traffic (questions, tally) — breaker only.
+            - id: survey-service
+              uri: lb://survey-service
+              predicates:
+                - Path=/survey-service/**
+              filters:
+                - StripPrefix=1
+                - name: CircuitBreaker
+                  args:
+                    name: surveyService
+                    fallbackUri: forward:/fallback/survey
+            - id: results-service
+              uri: lb://results-service
+              predicates:
+                - Path=/results-service/**
+              filters:
+                - StripPrefix=1
+            # Catch-all: serve the UI. Lowest precedence.
+            - id: survey-ui
+              uri: lb://survey-ui
+              predicates:
+                - Path=/**
+              order: 999
+
+# Shared HMAC secret for the workshop's HS256 tokens (>= 32 bytes).
+# Production: replace with spring.security.oauth2.resourceserver.jwt.jwk-set-uri.
+bbq:
+  jwt:
+    secret: ${BBQ_JWT_SECRET:bbq-wednesday-kansas-city-burnt-ends-secret-key}
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        sliding-window-size: 10
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 3s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway,metrics
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    com.bbqwednesday: DEBUG
