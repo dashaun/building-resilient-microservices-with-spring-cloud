@@ -91,6 +91,10 @@ DaShaun Carter | Spring Developer Advocate
 
 [DaShaun.com](https://dashaun.com)
 
+Spencer Gibb | Spring Cloud Cofounder
+
+[gibb.tech](https://gibb.tech)
+
 > Which capability will you add to YOUR system first — and what will it stop hurting?
 
 Notes:
