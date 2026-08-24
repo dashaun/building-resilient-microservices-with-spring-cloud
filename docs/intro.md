@@ -4,9 +4,9 @@
 
 ### with Spring Cloud
 
-DaShaun Carter | Spring Developer Advocate
+DaShaun Carter | Spring Developer Advocate | [DaShaun.com](https://dashaun.com) <!-- .element: style="color: white" -->
 
-[DaShaun.com](https://dashaun.com)
+Spencer Gibb | Spring Cloud Cofounder | [gibb.tech](https://gibb.tech) <!-- .element: style="color: white" -->
 
 Notes:
 Good morning. I'm DaShaun Carter, a Spring Developer Advocate, and for the next four hours we are going to build a small fleet of microservices that actually survives production.
