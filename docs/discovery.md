@@ -132,6 +132,13 @@ Call by **name** with a load-balanced client:
 RestClient.Builder loadBalancedRestClientBuilder() {
     return RestClient.builder();
 }
+
+// for regular non-loadbalanced clients (such as eureka-client)
+@Bean
+@Primary
+RestClient.Builder defaultRestClientBuilder() {
+   return RestClient.builder();
+}
 ```
 
 ```java
@@ -165,12 +172,10 @@ public interface TallyClient {
 ```
 
 ```java
-@Bean
-TallyClient tallyClient(RestClient.Builder loadBalanced) {
-    RestClient rc = loadBalanced.baseUrl("http://results-service").build();
-    return HttpServiceProxyFactory
-        .builderFor(RestClientAdapter.create(rc))
-        .build().createClient(TallyClient.class);
+@SpringBootApplication
+@ImportHttpServices(group = "results-service", types = TallyClient.class)
+public class SurveyServiceApplication {
+	// ... main, etc...
 }
 ```
 

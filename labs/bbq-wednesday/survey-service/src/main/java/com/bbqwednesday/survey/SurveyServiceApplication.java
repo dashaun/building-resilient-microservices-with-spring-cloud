@@ -1,12 +1,17 @@
 package com.bbqwednesday.survey;
 
+import com.bbqwednesday.survey.client.TallyClient;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.service.registry.ImportHttpServices;
 
 @SpringBootApplication
+@ImportHttpServices(group = "results-service", types = TallyClient.class)
 public class SurveyServiceApplication {
 
     public static void main(String[] args) {
@@ -21,4 +26,9 @@ public class SurveyServiceApplication {
         return RestClient.builder();
     }
 
+    @Bean
+    @Primary
+    RestClient.Builder defaultRestClientBuilder() {
+        return RestClient.builder();
+    }
 }
