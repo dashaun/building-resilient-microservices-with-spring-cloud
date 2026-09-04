@@ -98,6 +98,9 @@ Likely questions
 - Q: git vs native? A: Same client behavior. Git adds versioning, PR review, and rollback. Native is perfect for a laptop.
 - Q: Can it serve YAML and properties? A: Both, plus profile- and label-specific files.
 
+Config Server Configuration
+- either set CONFIG_REPO to absolute path to `config-repo` or run app with working directory of `config-server`
+
 ---
 
 ## The Backend: config-repo/
