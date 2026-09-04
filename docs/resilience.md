@@ -93,8 +93,8 @@ Likely questions
 </dependency>
 ```
 
-⚠️ `spring-boot-starter-aop` was **removed** in Boot 4 — depend on
-`aspectjweaver` directly (Boot still manages its version).
+⚠️ `spring-boot-starter-aop` was **replaced** in Boot 4 — depend on
+`spring-boot-starter-aspectj` instead.
 
 Notes:
 Minute 99-101.
