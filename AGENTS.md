@@ -9,7 +9,7 @@ Spring Cloud capability, and each exercise is immediately followed by an answer 
 
 ## Version Contract
 
-- Spring Boot `4.0.7`
+- Spring Boot `4.1.1`
 - Spring Cloud `2025.1.2` (Oakwood release train)
 - Java `21`
 - RabbitMQ 4.x · Redis 7.x · Grafana LGTM
