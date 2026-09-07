@@ -14,7 +14,7 @@ is the real thing.
 
 | Technology | Version |
 |---|---:|
-| Spring Boot | `4.0.7` |
+| Spring Boot | `4.1.1` |
 | Spring Cloud | `2025.1.2` (Oakwood) |
 | Java | `21` |
 | RabbitMQ | `4.x` (Spring Cloud Stream binder) |

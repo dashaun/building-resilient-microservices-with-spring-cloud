@@ -84,18 +84,17 @@ Likely questions
 
 ```xml
 <dependency>
-  <groupId>io.github.resilience4j</groupId>
-  <artifactId>resilience4j-spring-boot4</artifactId>
-  <version>2.4.0</version>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
 </dependency>
 <dependency>                          <!-- annotations need AspectJ -->
-  <groupId>org.aspectj</groupId>
-  <artifactId>aspectjweaver</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-aspectj</artifactId>
 </dependency>
 ```
 
-⚠️ `spring-boot-starter-aop` was **removed** in Boot 4 — depend on
-`aspectjweaver` directly (Boot still manages its version).
+⚠️ `spring-boot-starter-aop` was **replaced** in Boot 4 — depend on
+`spring-boot-starter-aspectj` instead.
 
 Notes:
 Minute 99-101.

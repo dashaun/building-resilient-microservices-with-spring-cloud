@@ -129,7 +129,7 @@ Likely questions
 
 | Technology | Version | Role |
 |---|---:|---|
-| Spring Boot | `4.0.7` | application runtime |
+| Spring Boot | `4.1.1` | application runtime |
 | Spring Cloud | `2025.1.2` | Oakwood — the Boot 4 train |
 | Java | `21` | language level |
 | RabbitMQ | `4.x` | Spring Cloud Stream binder |
