@@ -6,6 +6,7 @@ import com.bbqwednesday.survey.model.SurveyQuestions;
 import com.bbqwednesday.survey.model.SurveyVote;
 import com.bbqwednesday.survey.service.SurveyService;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,7 +49,7 @@ public class SurveyController {
         return ResponseEntity.ok(surveyService.recordVote(vote));
     }
 
-    ResponseEntity<SurveyVote> tooManyVotes(SurveyVote vote, Throwable t) {
+    ResponseEntity<SurveyVote> tooManyVotes(SurveyVote vote, RequestNotPermitted t) {
         throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
                 "Slow down — BBQ Wednesday is popular");
     }
@@ -56,6 +57,7 @@ public class SurveyController {
     // Resilient synchronous read: never fails even if results-service is down.
     @GetMapping("/tally/{questionId}")
     public TallyView tally(@PathVariable String questionId) {
+        log.info("[survey-service:{}] serving tally for {}", serverPort, questionId);
         return resultsClient.currentTally(questionId);
     }
 }

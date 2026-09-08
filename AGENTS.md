@@ -18,7 +18,7 @@ Do not silently change these. Spring Cloud versions come from the `spring-cloud-
 BOM — never pin individual `spring-cloud-*` artifacts.
 
 **Boot 4 gotcha:** `spring-boot-starter-aop` no longer exists. Resilience4j annotations
-require AspectJ via `org.aspectj:aspectjweaver` (Boot-managed version). Keep it.
+require the Boot-managed `spring-boot-starter-aspectj`. Keep it.
 
 ## Structure
 
@@ -34,11 +34,11 @@ require AspectJ via `org.aspectj:aspectjweaver` (Boot-managed version). Keep it.
 
 ```bash
 # deck
-jwebserver -d docs -p 8000
+jwebserver -d "$PWD/docs" -p 8000
 
 # code
 cd labs/bbq-wednesday
-./mvnw -q -DskipTests package
+./mvnw verify
 ./mvnw -pl survey-service spring-boot:run     # or per module
 
 # infra
@@ -58,8 +58,8 @@ Packages are under `com.bbqwednesday.*`. The vote event
 (`SurveyVoteEvent(questionId, answer, timestamp, voterId)`) is duplicated in the producer and
 consumer on purpose — they are independently deployable services, not a shared library.
 
-The survey→results call is a **declarative** `@HttpExchange` client (`TallyClient`, built via
-`HttpServiceProxyFactory`/`RestClientAdapter` in `ClientConfig`); `ResultsClient` wraps it with
+The survey→results call is a **declarative** `@HttpExchange` client (`TallyClient`, registered via
+`@ImportHttpServices(group = "results-service", types = TallyClient.class)`); `ResultsClient` wraps it with
 Resilience4j. Config clients also carry `spring-cloud-starter-bus-amqp` so `/actuator/busrefresh`
 fans a refresh across instances over RabbitMQ. Config-encryption (`{cipher}`) and gateway
 OAuth2 login/SSO are taught as **concept slides only** — not wired into the lab (SSO needs a live

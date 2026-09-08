@@ -2,18 +2,23 @@
     'use strict';
 
     var API_SURVEY = '/survey-service';
-    var voterId = crypto.randomUUID();
+    // getRandomValues also works on HTTP LAN addresses used by workshop phones.
+    var voterId = Array.from(crypto.getRandomValues(new Uint8Array(16)), function (b) {
+        return b.toString(16).padStart(2, '0');
+    }).join('');
     var bearerToken = null; // fetched from the gateway's dev /token endpoint
     var pollsContainer = document.getElementById('polls-container');
 
     // The gateway requires a JWT to POST a vote, so grab one up front.
-    fetchToken().then(fetchQuestions);
+    fetchQuestions();
 
     function fetchToken() {
         return fetch('/token')
-            .then(function (res) { return res.ok ? res.json() : null; })
-            .then(function (body) { if (body) bearerToken = body.access_token; })
-            .catch(function () { /* reads still work without a token */ });
+            .then(function (res) {
+                if (!res.ok) throw new Error('Cannot get a voting token. Try again.');
+                return res.json();
+            })
+            .then(function (body) { bearerToken = body.access_token; });
     }
 
     function fetchQuestions() {
@@ -86,19 +91,22 @@
         btn.disabled = true;
         btn.textContent = 'Submitting…';
 
+        // Refresh before voting: a workshop lasts longer than the one-hour token.
+        fetchToken().then(function () {
         var headers = { 'Content-Type': 'application/json' };
         if (bearerToken) headers['Authorization'] = 'Bearer ' + bearerToken;
 
-        fetch(API_SURVEY + '/submit', {
+        return fetch(API_SURVEY + '/submit', {
             method: 'POST',
             headers: headers,
             body: JSON.stringify({ questionId: questionId, answer: answer, voterId: voterId })
+        });
         })
         .then(function (res) {
             if (res.status === 429) throw new Error('Slow down — rate limited');
             if (res.status === 401) throw new Error('Not authorized (missing token)');
             if (!res.ok) throw new Error('HTTP ' + res.status);
-            showToast('Vote counted! 🍖', 'success');
+            showToast('Vote submitted! 🍖', 'success');
             form.querySelectorAll('input[type="radio"]').forEach(function (r) { r.checked = false; });
         })
         .catch(function (err) {
@@ -113,6 +121,7 @@
     function showToast(message, type) {
         var toast = document.createElement('div');
         toast.className = 'toast ' + type;
+        toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
         toast.textContent = message;
         document.body.appendChild(toast);
         requestAnimationFrame(function () { toast.classList.add('show'); });

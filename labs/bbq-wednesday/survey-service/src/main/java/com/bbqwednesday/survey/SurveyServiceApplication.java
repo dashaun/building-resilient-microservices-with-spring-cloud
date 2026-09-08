@@ -4,6 +4,7 @@ import com.bbqwednesday.survey.client.TallyClient;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.restclient.autoconfigure.RestClientBuilderConfigurer;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -22,13 +23,13 @@ public class SurveyServiceApplication {
     // through Eureka + Spring Cloud LoadBalancer instead of a fixed host:port.
     @Bean
     @LoadBalanced
-    RestClient.Builder loadBalancedRestClientBuilder() {
-        return RestClient.builder();
+    RestClient.Builder loadBalancedRestClientBuilder(RestClientBuilderConfigurer configurer) {
+        return configurer.configure(RestClient.builder());
     }
 
     @Bean
     @Primary
-    RestClient.Builder defaultRestClientBuilder() {
-        return RestClient.builder();
+    RestClient.Builder defaultRestClientBuilder(RestClientBuilderConfigurer configurer) {
+        return configurer.configure(RestClient.builder());
     }
 }

@@ -59,7 +59,7 @@ The server is a tiny Spring Boot app. The clients don't hardcode values; they fe
 
 Likely questions
 - Q: Where do secrets go? A: Not here in plaintext for real systems — back the server with Vault, or use a secrets manager. Config Server has a Vault backend.
-- Q: What if the server is down? A: Clients cache last-known config, and we mark the import `optional:` so startup isn't blocked. Config-first-boot ordering matters — we'll cover it.
+- Q: What if the server is down? A: Running clients retain their current values. `optional:` allows a new process to start without remote config, but does not persist a last-known-good cache; this lab then has no questions. Config-first-boot ordering matters — we'll cover it.
 
 ---
 
@@ -107,7 +107,7 @@ Config Server Configuration
 
 ```text
 config-repo/
-├── application.yml          # shared by EVERY service
+├── application.yml          # shared by both config clients
 ├── survey-service.yml       # the BBQ questions live here
 └── results-service.yml
 ```
@@ -156,7 +156,7 @@ Minute 31-34.
 `spring.config.import=configserver:...` is the modern client (no more bootstrap.yml). `optional:` means "boot even if the server is unreachable" — important so a config outage doesn't cascade into a total outage. The application NAME is the lookup key.
 
 Likely questions
-- Q: Why `optional:`? A: Resilience. Drop it and the app refuses to start without the server. Keep last-known-good behavior instead.
+- Q: Why `optional:`? A: Resilience. Drop it and the app refuses to start without the server. It does not provide a persistent config cache. Start Config Server first; production clients may prefer a required import plus retry.
 - Q: bootstrap.yml? A: Gone. `spring.config.import` replaced it years ago.
 
 ---
@@ -193,12 +193,14 @@ Likely questions
 
 ## Exercise 1 — Wire the Client (10 min)
 
-Start the two infrastructure pieces, then survey-service:
+With RabbitMQ running from setup, start discovery/config, then survey-service:
 
 ```bash
 cd labs/bbq-wednesday
 (cd eureka-server  && ../mvnw spring-boot:run) &   # :8761
 (cd config-server  && ../mvnw spring-boot:run) &   # :8888
+# Wait for config before starting its client:
+until curl -fsS localhost:8888/survey-service/default >/dev/null; do sleep 1; done
 (cd survey-service && ../mvnw spring-boot:run) &   # :8081
 ```
 
@@ -245,6 +247,9 @@ Notes:
 Minute 46-48.
 Land the point: two services, and the questions existed only in config-repo. Change the file, and every survey-service instance can pick it up — which is the next slide.
 
+Likely questions
+- Q: Why are my questions empty? A: Check the Config Server response and restart the client after config is available.
+
 ---
 
 ## Secrets: Don't Store Them in the Clear
@@ -258,7 +263,7 @@ curl localhost:8888/encrypt -d 's3cr3t-bbq-sauce'
 ```
 
 ```properties
-# config-repo/survey-service.yml — safe to commit
+# config-repo/survey-service.yml — ciphertext example, concept only
 spring.rabbitmq.password: '{cipher}682bc583f4641835...'
 ```
 
@@ -297,6 +302,8 @@ class BreakerTuning {           // re-created on the next /actuator/refresh
 ```
 
 `/actuator/refresh` returns the list of keys that changed.
+The lab sets `eureka.client.refresh.enable: false` to keep registration stable;
+restart clients when changing Eureka settings.
 
 Notes:
 Minute 48-50.
@@ -357,3 +364,6 @@ You can now:
 Notes:
 Minute 50.
 Hand off to Discovery. We've been hardcoding `localhost:8888` and `localhost:8761`; discovery removes the last hardcoded hosts. Keep eureka-server and config-server running.
+
+Likely questions
+- Q: Which clients refresh? A: The survey and results services import remote config; gateway and UI use local config.

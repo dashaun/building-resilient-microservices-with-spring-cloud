@@ -1,9 +1,7 @@
 # ---------------------------------------------------------------------------
 # results-service — centrally managed knobs for the live tally aggregator.
 # ---------------------------------------------------------------------------
-results:
-  # How the UI polls; surfaced here so we can demonstrate a live refresh.
-  poll-interval-ms: 2000
+# The UI polling interval is defined in static/js/results.js (2000 ms).
 
 # Demonstrates environment-specific values without repackaging:
 # a "prod" profile could ship a different banner via results-service-prod.yml.

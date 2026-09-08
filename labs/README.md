@@ -8,7 +8,7 @@ slide, so you can copy the answer and catch up without switching branches.
 ```bash
 cd bbq-wednesday
 sdk env                             # JDK 21
-./mvnw -q -DskipTests package       # builds all six services
+./mvnw verify       # builds all six services
 ```
 
 ## Modules
@@ -30,10 +30,12 @@ Discovery and config first, then the rest:
 eureka-server → config-server → gateway → survey-service → results-service → survey-ui
 ```
 
-`./bbq-wednesday/start-all.sh` opens one terminal tab per service on macOS.
+`./start-all.sh` (from `labs/bbq-wednesday`) opens one terminal per service on macOS.
+On other platforms, run `../mvnw spring-boot:run` from each service directory;
+start the second survey instance with `SERVER_PORT=8082`.
 
 ## Backing Services
 
 From the **repo root**: `docker compose up -d` starts RabbitMQ (Stream), Redis (gateway rate
-limiter), and Grafana LGTM (tracing). Config and Discovery need none of it — the JVM is enough
-until the Resilience/Stream modules.
+limiter), and Grafana LGTM (tracing). The standalone Config and Eureka servers need only the JVM; the complete
+survey/results reference includes Bus and Stream, so start RabbitMQ during setup.

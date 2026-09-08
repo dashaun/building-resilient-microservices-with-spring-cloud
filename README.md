@@ -26,8 +26,7 @@ train for Spring Boot 4 / Spring Framework 7. Pin the train in the root `pom.xml
 manage every `spring-cloud-*` version.
 
 > **Boot 4 note:** `spring-boot-starter-aop` was removed. The Resilience4j annotations need
-> AspectJ, so `survey-service` depends on `org.aspectj:aspectjweaver` directly (version
-> managed by the Boot BOM).
+> AspectJ, so `survey-service` uses the Boot-managed `spring-boot-starter-aspectj`.
 
 ## The System
 
@@ -43,7 +42,7 @@ manage every `spring-cloud-*` version.
 ```text
 survey-ui ─▶ gateway ─▶ survey-service ──"bbq-votes" (RabbitMQ)──▶ results-service
                              │  ◀── HTTP tally read (Resilience4j) ──┘
-        every service: registers with eureka-server, reads config-server, emits traces
+        config clients: survey-service + results-service; traces: gateway + both services
 ```
 
 ## Running the Workshop Deck
@@ -51,7 +50,7 @@ survey-ui ─▶ gateway ─▶ survey-service ──"bbq-votes" (RabbitMQ)─�
 The slides are a Reveal.js deck in [`docs/`](docs/).
 
 ```bash
-jwebserver -d docs -p 8000     # JDK 21+ built-in static server
+jwebserver -d "$PWD/docs" -p 8000     # JDK 21+ built-in static server
 # open http://localhost:8000  — press S for speaker notes
 ```
 
@@ -61,17 +60,17 @@ Navigation: **Right/Left** moves between the eight modules, **Down/Up** within a
 ## Running the Code
 
 ```bash
-# 1. backing services (needed from the Resilience/Stream modules onward)
-docker compose up -d                 # RabbitMQ · Redis · Grafana LGTM
+# 1. backing services (the complete reference includes Bus/Stream from startup)
+docker compose up -d --wait          # RabbitMQ · Redis · Grafana LGTM
 
 # 2. build everything
 cd labs/bbq-wednesday
 sdk env                              # JDK 21 (or ensure java -version is 21+)
-./mvnw -q -DskipTests package
+./mvnw verify
 
 # 3. start the services (each in its own terminal), in this order:
 #    eureka-server → config-server → gateway → survey-service → results-service → survey-ui
-./start-all.sh                       # macOS: opens a tab per service
+./start-all.sh                       # macOS: opens a terminal per service
 ```
 
 Then open:
@@ -100,3 +99,26 @@ Then open:
 
 Domain adapted from [ryanjbaxter/spring-survey-app](https://github.com/ryanjbaxter/spring-survey-app).
 Workshop by [DaShaun Carter](https://dashaun.com).
+
+## Verification and recovery
+
+Run `./mvnw verify` from `labs/bbq-wednesday` for the regression tests.
+After starting all services and allowing Eureka caches to settle, run
+`python3 scripts/smoke-test.py` from the repository root. It adds test votes and
+checks config, discovery, JWT security, broker delivery, tally reads, and edge limiting.
+
+The initial Maven build and Docker image pull require internet. Chart.js is bundled
+locally; the deck's optional Google Fonts fall back to installed fonts when offline.
+The shell examples use Bash; Windows users can use Git Bash plus `mvnw.cmd`.
+
+- Port already allocated: inspect `docker ps` and local listeners before starting;
+  another project's Redis or Grafana may own the workshop ports.
+- Empty questions: wait for `:8888/survey-service/default`, then restart survey-service.
+  `optional:configserver:` does not persist a last-known-good cache across restarts.
+- Initial gateway 503: allow up to a minute for Eureka's registry caches to settle.
+- Refresh: questions rebind live; resilience thresholds and Eureka settings require
+  a client restart. Eureka refresh is disabled to keep registration stable.
+- Results restart: H2 loses consumed tallies. The durable RabbitMQ queue retains
+  unconsumed votes; use persistent shared storage and idempotency for production.
+- Production messaging also needs publisher confirms/outbox handling; saving a vote
+  and publishing its event are separate operations in this teaching reference.

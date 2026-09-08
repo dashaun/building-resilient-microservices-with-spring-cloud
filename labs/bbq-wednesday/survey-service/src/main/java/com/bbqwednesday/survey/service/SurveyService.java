@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -40,7 +42,10 @@ public class SurveyService {
             saved.getAnswer(),
             saved.getTimestamp(),
             saved.getVoterId());
-        streamBridge.send(VOTE_OUT, event);
+        if (!streamBridge.send(VOTE_OUT, event)) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Vote publication failed; tally was not updated");
+        }
         log.info("Published SurveyVoteEvent to '{}': {} -> {}",
                 VOTE_OUT, event.questionId(), event.answer());
 

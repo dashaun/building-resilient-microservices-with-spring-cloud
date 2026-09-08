@@ -1,4 +1,4 @@
-# Shared configuration served to EVERY service by the Config Server.
+# Shared configuration served to both config clients by the Config Server.
 # Anything here is overridden by a service-specific file (survey-service.yml, etc.).
 
 management:
@@ -14,6 +14,10 @@ management:
 # Every client registers with the same Eureka, delivered centrally.
 eureka:
   client:
+    # Keep registration stable while refreshing questions. Recreating the Eureka
+    # client on this train can lose its instance id during a refresh.
+    refresh:
+      enable: false
     service-url:
       defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
   instance:

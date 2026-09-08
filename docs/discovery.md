@@ -10,6 +10,9 @@ Notes:
 Minute 50.
 Config removed values from the jar. Discovery removes the last hardcoded thing: the location of other services. Keep eureka-server and config-server running from the previous module.
 
+Likely questions
+- Q: Does discovery replace config? A: No; it resolves instances while config supplies settings.
+
 ---
 
 ## The Problem: Where Is results-service?
@@ -87,6 +90,9 @@ Notes:
 Minute 56-58.
 Same shape as the Config Server: one annotation, one dependency. It turns those two client flags off because the registry is not itself a client. The dashboard is genuinely useful on stage — it's the live picture of the system.
 
+Likely questions
+- Q: Why disable self-registration? A: This standalone registry does not need to register itself.
+
 ---
 
 ## Registering a Client
@@ -103,7 +109,7 @@ Add the dependency:
 Point it at the registry (delivered centrally by the Config Server!):
 
 ```yaml
-# config-repo/application.yml — inherited by every service
+# config-repo/application.yml — inherited by both config clients
 eureka:
   client:
     service-url:
@@ -114,7 +120,7 @@ eureka:
 
 Notes:
 Minute 58-61.
-The dependency is enough to auto-register — no `@EnableDiscoveryClient` needed on modern Spring Cloud. Notice where the Eureka URL lives: in `config-repo/application.yml`, so the Config Server hands every service its registry location. The two Spring Cloud patterns already compose.
+The dependency is enough to auto-register — no `@EnableDiscoveryClient` needed on modern Spring Cloud. Notice where the Eureka URL lives: in `config-repo/application.yml`, so the Config Server hands survey-service and results-service their registry location. Gateway, UI, and Config Server configure their registry URL locally. The two Spring Cloud patterns already compose.
 
 Likely questions
 - Q: Do I still need `@EnableDiscoveryClient`? A: No, it's implied by the starter. You'll still see it in older code; harmless, just redundant.
@@ -129,15 +135,15 @@ Call by **name** with a load-balanced client:
 ```java
 @Bean
 @LoadBalanced
-RestClient.Builder loadBalancedRestClientBuilder() {
-    return RestClient.builder();
+RestClient.Builder loadBalancedRestClientBuilder(RestClientBuilderConfigurer configurer) {
+    return configurer.configure(RestClient.builder());
 }
 
 // for regular non-loadbalanced clients (such as eureka-client)
 @Bean
 @Primary
-RestClient.Builder defaultRestClientBuilder() {
-   return RestClient.builder();
+RestClient.Builder defaultRestClientBuilder(RestClientBuilderConfigurer configurer) {
+   return configurer.configure(RestClient.builder());
 }
 ```
 
@@ -181,7 +187,7 @@ public class SurveyServiceApplication {
 
 Notes:
 Minute 63-65 (optional — skip if pressed for time).
-This is the modern successor to Netflix Feign: Spring's `@HttpExchange` HTTP interface clients, built into Spring Framework 7 — no extra dependency. Because the proxy is backed by the `@LoadBalanced` RestClient, the base URL is a Eureka service id, so you get discovery + load balancing behind a clean interface. In the lab, `ResultsClient` uses exactly this `TallyClient`, and the next module wraps it in Resilience4j.
+This is the modern successor to Netflix Feign: Spring's `@HttpExchange` HTTP interface clients, built into Spring Framework 7 — no extra dependency. Spring Cloud derives the load-balanced destination from the HTTP service group name `results-service`. Boot configures that group’s client; the explicit builders on the previous slide demonstrate imperative clients. Use Boot’s builder configurer to preserve tracing. In the lab, `ResultsClient` uses exactly this `TallyClient`, and the next module wraps it in Resilience4j.
 
 Likely questions
 - Q: Is this Spring Cloud OpenFeign? A: No — OpenFeign still exists, but `@HttpExchange` is the framework-native, dependency-free option and the current recommendation. Same declarative feel.
@@ -195,9 +201,10 @@ Run a **second** survey-service, then watch discovery work:
 
 ```bash
 # instance #1 already runs on 8081; add a second on 8082
-cd labs/bbq-wednesday
-SERVER_PORT=8082 (cd survey-service && ../mvnw spring-boot:run) &
+# from labs/bbq-wednesday
+(cd survey-service && SERVER_PORT=8082 ../mvnw spring-boot:run) &
 (cd results-service && ../mvnw spring-boot:run) &   # :8083
+(cd gateway && ../mvnw spring-boot:run) &           # :8080; Redis must be running
 ```
 
 1. Open **http://localhost:8761** — see `SURVEY-SERVICE` with **two** instances.
@@ -207,7 +214,7 @@ SERVER_PORT=8082 (cd survey-service && ../mvnw spring-boot:run) &
 
 Notes:
 Minute 64-72.
-Two goals: see multiple instances in the registry, and see client-side load balancing spread traffic. The `/tally` call goes survey-service → results-service by name, so you're exercising registration AND discovery in one request. (Gateway may not be up yet — call survey-service directly on 8081/8082 if so.)
+Two goals: see multiple instances in the registry, and see client-side load balancing spread traffic. The `/tally` call goes survey-service → results-service by name, so you're exercising registration AND discovery in one request. Start the gateway for this exercise; it is the load-balancing caller. Wait for both instances to appear in Eureka and for the gateway registry cache to refresh (up to about a minute). Direct calls to 8081/8082 do not demonstrate load balancing.
 
 Likely questions
 - Q: Only one instance shows? A: Give heartbeats a few seconds, and confirm the second used a different port. `prefer-ip-address` avoids hostname clashes.
@@ -278,3 +285,6 @@ You can now:
 Notes:
 Minute 74-75, then BREAK (75-90).
 Leave eureka-server and config-server running over the break. When we return, results-service becomes unreliable on purpose and we make survey-service survive it. Before the break, make sure everyone sees two survey-service instances in the dashboard.
+
+Likely questions
+- Q: Can discovery hide downstream failure? A: No; the next module adds timeouts, retries, and fallback.

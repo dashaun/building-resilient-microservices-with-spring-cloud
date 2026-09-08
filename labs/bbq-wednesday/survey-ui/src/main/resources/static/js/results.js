@@ -27,7 +27,7 @@
                 connectionStatus.textContent = 'Polling: Active';
                 connectionStatus.className = 'status connected';
                 pollResults();
-                setInterval(pollResults, POLL_INTERVAL);
+
             })
             .catch(function (err) {
                 resultsContainer.innerHTML =
@@ -82,11 +82,21 @@
     }
 
     function pollResults() {
-        questionIds.forEach(function (questionId) {
-            fetch(API_RESULTS + '/' + questionId)
-                .then(function (res) { return res.ok ? res.json() : null; })
-                .then(function (data) { if (data) updateChart(data); })
-                .catch(function () { /* silently ignore poll errors */ });
+        Promise.all(questionIds.map(function (questionId) {
+            return fetch(API_RESULTS + '/' + encodeURIComponent(questionId))
+                .then(function (res) {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                })
+                .then(updateChart);
+        })).then(function () {
+            connectionStatus.textContent = 'Polling: Active';
+            connectionStatus.className = 'status connected';
+        }).catch(function () {
+            connectionStatus.textContent = 'Results unavailable — retrying…';
+            connectionStatus.className = 'status disconnected';
+        }).finally(function () {
+            setTimeout(pollResults, POLL_INTERVAL);
         });
     }
 
@@ -94,14 +104,11 @@
         var chart = charts[data.questionId];
         if (!chart) return;
 
-        var labels = Object.keys(data.answerCounts);
-        var values = labels.map(function (k) { return data.answerCounts[k]; });
-
-        if (labels.length > 0) {
-            chart.data.labels = labels;
-            chart.data.datasets[0].data = values;
-            chart.update();
-        }
+        // Keep configured answers visible and clear bars when an H2 tally resets.
+        chart.data.datasets[0].data = chart.data.labels.map(function (answer) {
+            return data.answerCounts[answer] || 0;
+        });
+        chart.update();
 
         var totalEl = document.getElementById('total-' + data.questionId);
         if (totalEl) {

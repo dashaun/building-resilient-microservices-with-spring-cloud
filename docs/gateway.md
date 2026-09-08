@@ -10,6 +10,9 @@ Notes:
 Minute 175 (after the break).
 Everything so far exposed its own port. That's fine inside the cluster and wrong at the edge. The gateway is the single public front door — and the one place to solve routing, security, and rate limiting once. Start Redis if you haven't: `docker compose up -d redis`.
 
+Likely questions
+- Q: Is gateway already running? A: Yes, from Exercise 2; this module explains and exercises its filters.
+
 ---
 
 ## The Problem: N Services, N Doors
@@ -86,7 +89,8 @@ Wrap a whole route in a breaker — degrade before the request even lands:
 @RequestMapping("/fallback/survey")
 ResponseEntity<?> surveyFallback() {
     return ResponseEntity.status(503).body(Map.of(
-        "message", "The pit is backed up — try again shortly."));
+        "status", 503,
+        "message", "The pit is backed up — survey-service is unavailable. Try again shortly."));
 }
 ```
 
@@ -211,7 +215,7 @@ Likely questions
 Start the gateway, then try to vote through it:
 
 ```bash
-(cd gateway && ../mvnw spring-boot:run) &     # :8080
+# gateway is already running from Exercise 2 (:8080)
 
 # 1. no token → blocked:
 curl -o /dev/null -w "%{http_code}\n" -X POST \
@@ -250,6 +254,9 @@ survey-service never checked a token. The **edge** did — once.
 Notes:
 Minute 205-207.
 The payoff: authentication lives in exactly one place, and downstream code stays focused on BBQ, not JWTs. Adding a second protected service means one more matcher line — not another security stack.
+
+Likely questions
+- Q: Are service ports protected too? A: No. Edge-only authentication is a lab simplification; restrict direct access in production.
 
 ---
 
@@ -327,14 +334,37 @@ for i in $(seq 1 15); do
 done ; echo
 ```
 
-Expect `200`s until the bucket drains, then `429`s — enforced by the gateway.
+Expect `200`s and `429`s. Inspect `X-RateLimit-Remaining` response headers
+(`curl -i`) to distinguish Redis edge limiting from the service limiter.
 
 Notes:
 Minute 210-213.
-Fifteen rapid authorized votes against a 5/sec + burst 10 bucket: the first ~10 pass, then 429s. This is the edge protecting the whole system, independent of any single service's own limiter. Redis must be running.
+Warm up with one vote, wait two seconds, then run the loop. The exact sequence varies with timing and both service instances’ local limiters; an edge rejection has exhausted Redis rate-limit headers. This is the edge protecting the whole system, independent of any single service's own limiter. Redis must be running.
 
 Likely questions
 - Q: No 429s? A: Redis isn't reachable, or the loop is slow. Confirm `docker compose ps redis` and lower `replenishRate` to 2.
+
+---
+
+## Answer 5b — Identify the Limiter
+
+```text
+HTTP/1.1 429 Too Many Requests
+X-RateLimit-Remaining: 0
+X-RateLimit-Replenish-Rate: 5
+X-RateLimit-Burst-Capacity: 10
+```
+
+These headers identify the Redis gateway bucket. A service-level `429`
+can occur while the gateway still has tokens; both limits are active.
+Exact counts depend on request timing and replenishment.
+
+Notes:
+Minute 213-214.
+Inspect a rejected response with `curl -i`; status alone does not identify the limiter.
+
+Likely questions
+- Q: Why fewer than ten successes? A: Each survey instance also limits votes to five per second.
 
 ---
 
@@ -353,3 +383,6 @@ You can now:
 Notes:
 Minute 213-215.
 The gateway ties the earlier modules together at the edge. The teaser for tracing: we now have a real call chain — browser → gateway → survey-service → results-service, plus an async hop over RabbitMQ — and no way yet to see it end to end. That's the final module.
+
+Likely questions
+- Q: How do I distinguish the two limiters? A: Inspect the gateway X-RateLimit response headers.

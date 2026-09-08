@@ -10,6 +10,9 @@ Notes:
 Minute 130.
 The most resilient call is the one you never make synchronously. results-service keeps its tally current by consuming EVENTS, not by being called. Make sure RabbitMQ is up: `docker compose up -d rabbitmq` (management UI at :15672, guest/guest).
 
+Likely questions
+- Q: Does the producer wait for aggregation? A: No; the consumer updates the tally asynchronously.
+
 ---
 
 ## Sync vs. Async
@@ -22,7 +25,7 @@ ASYNC  survey-service ──▶ [ bbq-votes ] ──▶ results-service
        (publish and move on; consumer catches up on its own time)
 ```
 
-Async **decouples in time**: the vote is safe the instant it's published, even if results-service is restarting.
+Async **decouples in time**: the broker can queue votes while results-service is stopped. The lab does not implement publisher confirms or a transactional outbox.
 
 Notes:
 Minute 130-133.
@@ -67,9 +70,12 @@ private static final String VOTE_OUT = "surveyVote-out-0";
 public SurveyVote recordVote(SurveyVote vote) {
     SurveyVote saved = repository.save(vote);
 
-    streamBridge.send(VOTE_OUT, new SurveyVoteEvent(
-        saved.getQuestionId(), saved.getAnswer(),
-        saved.getTimestamp(), saved.getVoterId()));
+    var event = new SurveyVoteEvent(saved.getQuestionId(), saved.getAnswer(),
+            saved.getTimestamp(), saved.getVoterId());
+    if (!streamBridge.send(VOTE_OUT, event)) {
+        throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                "Vote publication failed; tally was not updated");
+    }
 
     return saved;                 // persisted + published, then move on
 }
@@ -148,7 +154,7 @@ Minute 142-145.
 Same `destination: bbq-votes` on both sides is what connects them. The `group` is critical: it gives results-service a durable, named queue so events survive a restart and are load-balanced (not duplicated) across replicas. Without a group, each instance is a separate subscriber.
 
 Likely questions
-- Q: Two results-service instances without a group? A: Both get every event — double counting. With a group, the two share one queue: each event goes to exactly one instance.
+- Q: Two results-service instances without a group? A: Both get every event — double counting. With a group, instances share one queue, with at-least-once delivery. This lab runs ONE results-service because each H2 store is private; replicas need a shared durable store and idempotent processing.
 - Q: Where's the queue created? A: The binder declares the exchange and group queue on startup.
 
 ---
@@ -170,7 +176,7 @@ Then open **http://localhost:15672** (guest/guest) → Exchanges → `bbq-votes`
 
 Notes:
 Minute 145-157.
-The event crosses a service boundary: survey-service published, results-service consumed and aggregated, and you read the result from results-service directly. In the RabbitMQ UI they can watch message rates on the `bbq-votes` exchange and the `bbq-votes.results-service` queue. Bonus: kill results-service, cast three votes, restart it — the grouped queue held the messages and the tally catches up.
+The event crosses a service boundary: survey-service published, results-service consumed and aggregated, and you read the result from results-service directly. In the RabbitMQ UI they can watch message rates on the `bbq-votes` exchange and the `bbq-votes.results-service` queue. Bonus: kill results-service, cast three votes, restart it — the grouped queue held the new messages. H2 loses previously consumed tallies on restart, so the restarted tally contains only the queued votes. Persistent storage is the production upgrade.
 
 Likely questions
 - Q: Tally still 0? A: Check results-service consumed (its log prints "Received SurveyVoteEvent"), and that both sides share `destination: bbq-votes`.
@@ -185,17 +191,20 @@ POST /submit ─▶ survey-service
                    │ save vote (H2)
                    │ publish SurveyVoteEvent ─▶ [ bbq-votes ]
                    ▼                                  │
-                200 OK (immediately)                  ▼
+                200 OK (after publish)                  ▼
                                           results-service consumes
                                           increments Tally
-GET /burnt-ends ─▶ results-service  ─▶  {"Joe's Kansas City": 1, total: 1}
+GET /burnt-ends ─▶ results-service  ─▶  {questionId: "burnt-ends", answerCounts: {"Joe's Kansas City": 1}, totalResponses: 1}
 ```
 
 survey-service never waited for results-service. The broker carried the news.
 
 Notes:
 Minute 157-159.
-Reinforce temporal decoupling one more time and connect back: this is why the live-results page updates even under load, and why a consumer restart is a non-event. The most resilient integration is asynchronous.
+Reinforce temporal decoupling one more time and connect back: this is why the live-results page updates even under load, and why queued events survive a consumer restart. Previously consumed H2 tallies do not survive; distinguish message durability from database durability. The most resilient integration is asynchronous.
+
+Likely questions
+- Q: Why is the first tally read sometimes zero? A: The consumer may not have processed the vote yet. Poll again.
 
 ---
 
@@ -207,10 +216,13 @@ You can now:
 - consume them with a `Consumer<T>` **bean** — no broker API;
 - connect producers and consumers via **destinations**;
 - get **durable, load-balanced** delivery with a consumer **group**;
-- swap RabbitMQ for Kafka by **changing a dependency**, not code.
+- swap RabbitMQ for Kafka by changing the binder dependency **and broker configuration**; domain functions stay the same.
 
 **Break — 15 minutes. Then: one secure front door for the whole system.**
 
 Notes:
 Minute 159-160, then BREAK (160-175).
 Over the break, start Redis for the next module: `docker compose up -d redis`. When we return, the gateway becomes the single public entry point with routing, JWT security, and rate limiting.
+
+Likely questions
+- Q: Can I add another results replica? A: Only after moving the tally to a shared durable store and handling duplicate delivery.

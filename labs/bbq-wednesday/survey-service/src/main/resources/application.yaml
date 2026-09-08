@@ -4,6 +4,11 @@ spring:
   # Pull configuration (and the BBQ questions) from the Config Server on startup.
   config:
     import: optional:configserver:${CONFIG_SERVER_URI:http://localhost:8888}
+  http:
+    serviceclient:
+      results-service:
+        connect-timeout: 500ms
+        read-timeout: 500ms
   datasource:
     url: jdbc:h2:mem:votes
     driver-class-name: org.h2.Driver
@@ -19,6 +24,11 @@ spring:
     username: guest
     password: guest
   cloud:
+    circuitbreaker:
+      http-services:
+        # ResultsClient owns breaker/retry/fallback; avoid a second wrapper
+        # turning ResourceAccessException into NoFallbackAvailableException.
+        enabled: false
     stream:
       bindings:
         surveyVote-out-0:
@@ -34,9 +44,11 @@ management:
   tracing:
     sampling:
       probability: 1.0
-  otlp:
+  opentelemetry:
     tracing:
-      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
 
 logging:
   level:

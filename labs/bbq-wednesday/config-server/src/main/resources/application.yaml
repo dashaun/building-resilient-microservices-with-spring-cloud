@@ -16,8 +16,9 @@ spring:
 server:
   port: 8888
 
-# The Config Server is itself a Eureka client, so other services can find it
-# by name (spring.config.import=optional:configserver:) instead of a hard URL.
+# The Config Server registers with Eureka. The lab uses config-first lookup
+# through CONFIG_SERVER_URI; discovery-first lookup also requires
+# spring.cloud.config.discovery.enabled=true on clients.
 eureka:
   client:
     service-url:

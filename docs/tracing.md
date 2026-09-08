@@ -10,6 +10,9 @@ Notes:
 Minute 215.
 We built a system where a request touches the gateway, survey-service, results-service, and a broker hop. When it's slow, "check the logs" means four log files and no timeline. Tracing gives one picture. Start the stack: `docker compose up -d grafana-lgtm` (Grafana at :3000).
 
+Likely questions
+- Q: Which apps emit traces? A: Gateway, survey-service, and results-service.
+
 ---
 
 ## The Problem: Where Did the Time Go?
@@ -53,6 +56,9 @@ Notes:
 Minute 218-221.
 A trace is a tree of spans sharing a trace-id. Each span knows its parent, so you get a waterfall. The magic is propagation: the trace-id travels in HTTP headers (W3C `traceparent`) and in message headers, so spans created in different services join the same trace.
 
+Likely questions
+- Q: Is an async span inside the HTTP duration? A: Not necessarily; consumption can finish after the HTTP response.
+
 ---
 
 ## Micrometer Tracing
@@ -78,16 +84,12 @@ Likely questions
 
 ---
 
-## Two Dependencies, Two Properties
+## Boot 4: One Starter, Two Properties
 
 ```xml
 <dependency>
-  <groupId>io.micrometer</groupId>
-  <artifactId>micrometer-tracing-bridge-otel</artifactId>
-</dependency>
-<dependency>
-  <groupId>io.opentelemetry</groupId>
-  <artifactId>opentelemetry-exporter-otlp</artifactId>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-opentelemetry</artifactId>
 </dependency>
 ```
 
@@ -96,9 +98,11 @@ management:
   tracing:
     sampling:
       probability: 1.0        # trace EVERYTHING (demos & low volume)
-  otlp:
+  opentelemetry:
     tracing:
-      endpoint: http://localhost:4318/v1/traces
+      export:
+        otlp:
+          endpoint: http://localhost:4318/v1/traces
 ```
 
 Notes:
@@ -167,16 +171,19 @@ Likely questions
 Trace 4f3c… (total 142ms)
  gateway            POST /survey-service/submit      ■■■■■■■■■■■■■■  142ms
   └ survey-service  POST /submit                       ■■■■■■■■■■     98ms
-     ├ save vote (H2)                                    ■■           14ms
      └ StreamBridge publish → bbq-votes                    ■           3ms
         └ results-service  consume surveyVote-in-0          ■■■■■■     41ms
 ```
 
-The slow hop is now **obvious** — not a guess across four log files.
+Illustrative timing: actual span names and durations vary. H2 method spans
+require additional instrumentation and are not created by this lab.
 
 Notes:
 Minute 233-234.
-The forensic exercise from the first slide is now a glance. This is observability's payoff: attribute latency, see the async hop inline, and jump from a slow span to its logs (same trace-id). Metrics + traces + logs, one stack, one id.
+The forensic exercise from the first slide is now a glance. This is observability's payoff: attribute latency, see the async hop inline, and find matching trace IDs in the service terminal logs. The lab exports traces; shipping logs to Loki and metrics to Prometheus needs additional configuration.
+
+Likely questions
+- Q: Will timings match these numbers? A: No; the diagram is illustrative. Verify shared trace IDs and service boundaries.
 
 ---
 
@@ -184,7 +191,7 @@ The forensic exercise from the first slide is now a glance. This is observabilit
 
 You can now:
 
-- add tracing with **two dependencies and two properties**;
+- add tracing with **one starter and two properties**;
 - get **auto-instrumented** spans for web, clients, and the broker;
 - follow one **trace-id** across services **and** across RabbitMQ;
 - read a **waterfall** in Grafana Tempo to find the slow hop;
@@ -195,3 +202,6 @@ You can now:
 Notes:
 Minute 234-235.
 Every abstract bullet is now built and running. Move Right to the wrap: the production blueprint and a pre-ship checklist that ties all six modules together.
+
+Likely questions
+- Q: Do logs automatically appear in Loki? A: No; this lab exports traces and correlates terminal logs by trace ID.

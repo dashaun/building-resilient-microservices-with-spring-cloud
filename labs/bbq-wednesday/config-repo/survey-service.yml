@@ -29,9 +29,12 @@ survey:
         - "Pickles & white bread"
 
 # Resilience4j — protecting the survey-service -> results-service read.
-# These land on the CLIENT via the Config Server, so ops can retune them live.
+# These land on the CLIENT via Config Server. Restart clients after changing
+# resilience settings: refresh does not rebuild existing Resilience4j registries.
 resilience4j:
   circuitbreaker:
+    # Lower aspect order is outermost: breaker -> retry -> HTTP.
+    circuit-breaker-aspect-order: 1
     instances:
       resultsService:
         failure-rate-threshold: 50
@@ -40,6 +43,7 @@ resilience4j:
         minimum-number-of-calls: 5
         permitted-number-of-calls-in-half-open-state: 3
   retry:
+    retry-aspect-order: 2
     instances:
       resultsService:
         max-attempts: 3

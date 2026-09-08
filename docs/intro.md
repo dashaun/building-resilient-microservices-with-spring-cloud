@@ -9,16 +9,17 @@ DaShaun Carter | Spring Developer Advocate | [DaShaun.com](https://dashaun.com) 
 Spencer Gibb | Spring Cloud Cofounder | [gibb.tech](https://gibb.tech) <!-- .element: style="color: white" -->
 
 Notes:
+Minute 0-1.
 Good morning. I'm DaShaun Carter, a Spring Developer Advocate, and for the next four hours we are going to build a small fleet of microservices that actually survives production.
 
 Pre-flight (run before going on stage)
 - JDK 21+ active (`sdk env` in the repo, or `java -version` shows 21).
 - `docker compose up -d` from the repo root — RabbitMQ, Redis, and Grafana LGTM.
-- `cd labs/bbq-wednesday && ./mvnw -q -DskipTests package` so every jar is cached.
+- `cd labs/bbq-wednesday && ./mvnw verify` so every jar is cached.
 - IDE open at labs/bbq-wednesday.
 
 Running this deck
-- `jwebserver -d docs -p 8000` (JDK 21+ built-in static server), open http://localhost:8000.
+- `jwebserver -d "$PWD/docs" -p 8000` (JDK 21+ built-in static server), open http://localhost:8000.
 - Press **S** for speaker view (notes + timer + next slide).
 
 Reveal.js navigation
@@ -28,7 +29,7 @@ Reveal.js navigation
 - The two-dimensional layout means you can SKIP a module by pressing Right — the workshop still flows.
 
 Likely questions
-- Q: Do I need all the infrastructure running the whole time? A: No. Config and Discovery need nothing but the JVM. RabbitMQ arrives in Stream, Redis in Gateway, LGTM in Tracing.
+- Q: Do I need all the infrastructure running the whole time? A: No. The standalone Config and Eureka servers need only the JVM. The complete survey/results reference already includes Bus and Stream, so RabbitMQ is needed from setup; Redis is needed for gateway routing exercises.
 - Q: Can I catch up if I fall behind? A: Every exercise is followed by an answer slide, and labs/bbq-wednesday is a complete, compiling reference.
 
 ---
@@ -40,6 +41,7 @@ Likely questions
 Slides, the code, upcoming events, and every social link live there.
 
 Notes:
+Minute 1-2.
 Twenty seconds. This is the durable place to find the materials after today.
 
 Likely questions
@@ -52,7 +54,11 @@ Likely questions
 ### [SpringOfficeHours.io](https://springofficehours.io)
 
 Notes:
+Minute 2-3.
 Brief personal connection. Do not spend workshop time on the show — a sentence, then move on.
+
+Likely questions
+- Q: Is the show required preparation? A: No; it is an optional follow-up resource.
 
 ---
 
@@ -60,7 +66,8 @@ Brief personal connection. Do not spend workshop time on the show — a sentence
 
 A live audience survey about **Kansas City barbecue**.
 
-- Burnt ends, sauce, sides — you will vote from your phone.
+- Burnt ends, sauce, sides — vote from your laptop at localhost:8080.
+- Phone access needs a reachable host address on the same network.
 - Every vote flows through the same production patterns real systems use.
 - By lunch, the room is driving a distributed system we built together.
 
@@ -111,7 +118,7 @@ Likely questions
       │survey-service│──"bbq-votes"─▶│results-service│
       │   :8081/2    │◀── HTTP tally │    :8083      │
       └──────────────┘               └──────────────┘
-             ▲  every service registers with, and reads config from  ▲
+             ▲  services register; survey/results read config from  ▲
         [ eureka-server :8761 ]        [ config-server :8888 ]
 ```
 
@@ -143,7 +150,7 @@ Minute 12-14.
 Spring Cloud tracks Spring Boot through named release trains. "Oakwood" (2025.1.x) is the train built for Spring Boot 4 and Spring Framework 7. Pin the train, let it manage every `spring-cloud-*` version — never set those by hand.
 
 Likely questions
-- Q: Why not the newest Boot patch? A: 2025.1.2 explicitly targets the Boot 4.0.x line; we pin a known-good pair rather than chase patches during a workshop.
+- Q: Why not the newest Boot patch? A: 2025.1.2 supports Boot 4.0.x and 4.1.x; we pin a known-good pair rather than chase patches during a workshop.
 - Q: Where do I set the train? A: `spring-cloud.version` property + the `spring-cloud-dependencies` BOM import in the root pom.
 
 ---
@@ -181,10 +188,10 @@ docker compose up -d           # rabbit, redis, lgtm (needed later)
 
 cd labs/bbq-wednesday
 sdk env                        # JDK 21 (or ensure java -version is 21+)
-./mvnw -q -DskipTests package  # build all six services
+./mvnw verify  # build all six services
 ```
 
-You should see `BUILD SUCCESS` for six modules.
+You should see `BUILD SUCCESS` (six services plus the parent project).
 
 Notes:
 Minute 16-20.
@@ -192,5 +199,5 @@ Kick this off now; Maven can resolve while we start the Config module. Docker im
 
 Likely questions
 - Q: package fails on JDK 17? A: This build targets Java 21. `sdk env` selects it from .sdkmanrc, or install any JDK 21+.
-- Q: Do I need Docker right now? A: Only later. Config and Discovery run on the JVM alone. But starting the pull now saves time.
+- Q: Do I need Docker right now? A: Start it now: the reference already includes Bus and Stream even while we teach Config. Only the standalone Config/Eureka servers run without it.
 - Q: Windows? A: Use `mvnw.cmd`. Everything else is identical.

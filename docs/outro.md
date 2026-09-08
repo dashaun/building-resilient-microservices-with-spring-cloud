@@ -38,6 +38,9 @@ Notes:
 Minute 236-237.
 This is the slide to photograph. It maps each recurring microservices pain to the specific tool we used. Adopt them one at a time, in roughly this order — each is independently valuable.
 
+Likely questions
+- Q: Where are the checks? A: Run Maven verify, then scripts/smoke-test.py against the running stack.
+
 ---
 
 ## Your Production Blueprint

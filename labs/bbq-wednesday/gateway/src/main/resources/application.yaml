@@ -4,16 +4,15 @@ spring:
   data:
     redis:
       host: ${REDIS_HOST:localhost}
-      port: 6379
+      port: ${REDIS_PORT:6379}
   cloud:
     gateway:
       server:
         webflux:
-          # Auto-create a route per registered Eureka service (handy for demos).
-          discovery:
-            locator:
-              enabled: true
-              lower-case-service-id: true
+          # Explicit routes keep discovery from exposing unintended endpoints.
+          httpclient:
+            connect-timeout: 500
+            response-timeout: 2s
           routes:
             # Casting a vote: throttled by Redis + protected by the circuit breaker.
             - id: survey-submit
@@ -49,12 +48,21 @@ spring:
                 - Path=/results-service/**
               filters:
                 - StripPrefix=1
+                - name: CircuitBreaker
+                  args:
+                    name: resultsService
+                    fallbackUri: forward:/fallback/results
             # Catch-all: serve the UI. Lowest precedence.
             - id: survey-ui
               uri: lb://survey-ui
               predicates:
                 - Path=/**
               order: 999
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: surveyUi
+                    fallbackUri: forward:/fallback/ui
 
 # Shared HMAC secret for the workshop's HS256 tokens (>= 32 bytes).
 # Production: replace with spring.security.oauth2.resourceserver.jwt.jwk-set-uri.
@@ -92,9 +100,11 @@ management:
   tracing:
     sampling:
       probability: 1.0
-  otlp:
+  opentelemetry:
     tracing:
-      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
 
 logging:
   level:

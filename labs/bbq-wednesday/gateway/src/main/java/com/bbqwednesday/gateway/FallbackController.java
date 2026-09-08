@@ -14,6 +14,13 @@ import java.util.Map;
 @RestController
 public class FallbackController {
 
+    @RequestMapping({"/fallback/results", "/fallback/ui"})
+    public ResponseEntity<Map<String, Object>> serviceFallback() {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("status", 503,
+                        "message", "The service is unavailable. Try again shortly."));
+    }
+
     @RequestMapping("/fallback/survey")
     public ResponseEntity<Map<String, Object>> surveyFallback() {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
