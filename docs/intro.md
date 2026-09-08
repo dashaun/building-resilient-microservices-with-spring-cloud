@@ -38,6 +38,8 @@ Likely questions
 
 ### [DaShaun.com](https://dashaun.com)
 
+### [gibb.tech](https://gibb.tech)
+
 Slides, the code, upcoming events, and every social link live there.
 
 Notes:
