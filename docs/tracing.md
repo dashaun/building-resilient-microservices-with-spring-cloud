@@ -81,12 +81,38 @@ Likely questions
 
 ## Micrometer Tracing
 
-```text
-   your code / Spring          Micrometer            OpenTelemetry
-   ──────────────────    ───────────────────    ──────────────────
-   auto-instrumented ──▶ Observation API   ──▶  bridge-otel ──▶ OTLP ──▶ Grafana
-   (web, client, rabbit)  (one timing model)     (exporter)          (Tempo)
-```
+<svg class="dg" viewBox="0 0 1000 280" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a-g-mt" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#6db33f"/></marker></defs>
+<rect class="band" x="14" y="40" width="213" height="170" rx="14"/>
+<text class="lbl" x="120" y="65" letter-spacing="1.4">YOUR CODE &#183; SPRING</text>
+<rect class="n-app" x="30" y="80" width="181" height="112" rx="12"/>
+<text class="t-sm" x="120" y="117">auto-instrumented</text>
+<text class="sub" x="120" y="142">web &#183; RestClient</text>
+<text class="sub" x="120" y="162">the Rabbit binder</text>
+<path class="flow" d="M233,136 H261" marker-end="url(#a-g-mt)"/>
+<rect class="band" x="267" y="40" width="213" height="170" rx="14"/>
+<text class="lbl" x="373" y="65" letter-spacing="1.4">MICROMETER</text>
+<rect class="n-app" x="283" y="80" width="181" height="112" rx="12"/>
+<text class="t-sm" x="373" y="117">Observation API</text>
+<text class="sub" x="373" y="142">one timing model</text>
+<text class="sub" x="373" y="162">vendor-neutral</text>
+<path class="flow" d="M486,136 H514" marker-end="url(#a-g-mt)"/>
+<rect class="band" x="520" y="40" width="213" height="170" rx="14"/>
+<text class="lbl" x="626" y="65" letter-spacing="1.4">OPENTELEMETRY</text>
+<rect class="n-plain" x="536" y="80" width="181" height="112" rx="12"/>
+<text class="t-sm" x="626" y="117">bridge-otel</text>
+<text class="sub" x="626" y="142">exports over OTLP</text>
+<text class="sub" x="626" y="162">to :4318</text>
+<path class="flow" d="M739,136 H767" marker-end="url(#a-g-mt)"/>
+<rect class="band" x="773" y="40" width="213" height="170" rx="14"/>
+<text class="lbl" x="879" y="65" letter-spacing="1.4">BACKEND</text>
+<rect class="n-infra" x="789" y="80" width="181" height="112" rx="12"/>
+<text class="t-sm" x="879" y="117" style="fill:#4a5a5a">Grafana LGTM</text>
+<text class="sub" x="879" y="142">Tempo stores</text>
+<text class="sub" x="879" y="162">the trace</text>
+<path class="flow" d="M373,192 V240" style="stroke-dasharray:7 5" marker-end="url(#a-g-mt)"/>
+<text class="lbl-g" x="373" y="262">&#8230; and a metric, from that same Observation</text>
+</svg>
 
 - Spring auto-instruments web, RestClient, and the Rabbit binder.
 - **Micrometer Observation** is the vendor-neutral timing API.
