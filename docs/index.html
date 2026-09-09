@@ -50,6 +50,20 @@
         .reveal section[data-background-color="#c0392b"] p { color: white; }
         .reveal .progress, .reveal .controls { color: var(--spring-green); }
 
+        /* On colored slides a link must not inherit the body link color:
+           #6db33f on #6db33f is literally invisible. */
+        .reveal section[data-background-color="#6db33f"] a { color: #ffffff; text-decoration: underline; text-underline-offset: 4px; }
+        .reveal section[data-background-color="#191e1e"] a { color: #a8e07a; text-decoration: underline; text-underline-offset: 4px; }
+        /* Same for blockquotes: the near-white default panel + white text is unreadable. */
+        .reveal section[data-background-color="#6db33f"] blockquote,
+        .reveal section[data-background-color="#191e1e"] blockquote {
+            background: rgba(255, 255, 255, .13);
+            border-left-color: rgba(255, 255, 255, .9);
+            color: #ffffff;
+        }
+        .reveal section[data-background-color="#6db33f"] blockquote p,
+        .reveal section[data-background-color="#191e1e"] blockquote p { color: #ffffff; }
+
         /* ---- slide diagrams (svg.dg) ---- */
         .reveal svg.dg { display: block; margin: 0 auto; width: 100%; height: auto; font-family: 'Open Sans', sans-serif; }
         .dg text { text-anchor: middle; }

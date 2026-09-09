@@ -107,7 +107,7 @@ Likely questions
 
 ---
 
-<!-- .slide: data-background-color="#c0392b" -->
+<!-- .slide: data-background-color="#6db33f" -->
 
 ## Stop Wiring Hosts
 

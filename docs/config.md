@@ -268,14 +268,22 @@ Likely questions
 Config Server can **encrypt** values so the backend holds ciphertext:
 
 ```bash
-# with an encrypt.key set, ask the server to encrypt a secret:
-curl localhost:8888/encrypt -d 's3cr3t-bbq-sauce'
-# → 682bc583f4641835...   (store THIS in config-repo)
+# 1. the server needs a key. No key = every /encrypt call 500s.
+ENCRYPT_KEY=bbq-workshop-key ./mvnw spring-boot:run
+
+# 2. confirm the key took — do this BEFORE you demo:
+curl localhost:8888/encrypt/status
+# → {"status":"OK"}
+
+# 3. encrypt. text/plain matters: with curl's default form encoding,
+#    a '+' inside a secret silently arrives as a space.
+curl localhost:8888/encrypt -H 'Content-Type: text/plain' -d 's3cr3t-bbq-sauce'
+# → f134a0a13622ce45...   (store THIS in config-repo)
 ```
 
 ```properties
 # config-repo/survey-service.yml — ciphertext example, concept only
-spring.rabbitmq.password: '{cipher}682bc583f4641835...'
+spring.rabbitmq.password: '{cipher}f134a0a13622ce45...'
 ```
 
 The client receives the value **already decrypted**. For real secret
@@ -283,11 +291,14 @@ management, back the server with **HashiCorp Vault** instead of git.
 
 Notes:
 Minute 48-50 (optional — skip if pressed).
-The 2015-era point still holds: never commit plaintext secrets. Config Server decrypts `{cipher}`-prefixed values on the way to the client, using a symmetric `encrypt.key` (env `ENCRYPT_KEY`) or an asymmetric keystore. To try it live: start config-server with `ENCRYPT_KEY=somekey`, POST to `/encrypt`, paste the result behind `{cipher}`. Vault is the production answer — Config Server has a first-class Vault backend, so the client contract doesn't change.
+The 2015-era point still holds: never commit plaintext secrets. Config Server decrypts `{cipher}`-prefixed values on the way to the client, using a symmetric `encrypt.key` (env `ENCRYPT_KEY`) or an asymmetric keystore. The key is an env var, never a committed property. If you forget it, `/encrypt` answers a bare `500` with no explanation on this Boot 4 / Config Server 5 pair — not the documented `NO_KEY` body — so `/encrypt/status` is the check worth teaching. Vault is the production answer — Config Server has a first-class Vault backend, so the client contract doesn't change.
 
 Likely questions
 - Q: Symmetric or asymmetric? A: Symmetric `encrypt.key` is simplest; an RSA keystore lets you encrypt anywhere and decrypt only on the server. Both use the same `{cipher}` marker.
 - Q: Is `{cipher}` decrypted before the client sees it? A: By default yes, server-side. You can also ship ciphertext and decrypt on the client.
+- Q: I get a 500 from `/encrypt`. A: The server has no key. Restart it with `ENCRYPT_KEY` set and check `/encrypt/status` returns `{"status":"OK"}`.
+- Q: My decrypted secret is wrong. A: `curl -d` sends form-urlencoded, which turns `+` into a space. Add `-H 'Content-Type: text/plain'`. It fails silently — valid ciphertext for the wrong plaintext.
+- Q: Why doesn't my ciphertext match the slide? A: It never will. The symmetric encryptor salts every call, so the same secret encrypts differently each time — all of them decrypt back to the same plaintext.
 
 ---
 
