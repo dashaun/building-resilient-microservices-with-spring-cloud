@@ -17,10 +17,31 @@ Likely questions
 
 ## The Problem: Config in the Jar
 
-```text
-survey-service.jar
- └── application.yaml   ← questions, thresholds, endpoints baked in
-```
+<svg class="dg" viewBox="0 0 1000 250" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a-e-jar" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#c0392b"/></marker></defs>
+<rect class="n-plain" x="30" y="24" width="430" height="210" rx="12"/>
+<text class="mono" x="245" y="56" style="font-size:15px;font-weight:700;fill:#191e1e">survey-service.jar</text>
+<rect x="54" y="72" width="382" height="140" rx="10" fill="#f4f8f8" stroke="#cfd8d8" stroke-width="2"/>
+<text class="mono" x="245" y="98" style="font-size:14px;fill:#4a5a5a">application.yaml</text>
+<rect class="n-plain" x="72" y="112" width="168" height="34" rx="8"/>
+<text class="sub" x="156" y="134" style="font-size:13px;fill:#4a5a5a">the BBQ questions</text>
+<rect class="n-plain" x="252" y="112" width="168" height="34" rx="8"/>
+<text class="sub" x="336" y="134" style="font-size:13px;fill:#4a5a5a">breaker thresholds</text>
+<rect class="n-plain" x="72" y="156" width="168" height="34" rx="8"/>
+<text class="sub" x="156" y="178" style="font-size:13px;fill:#4a5a5a">service endpoints</text>
+<rect class="n-plain" x="252" y="156" width="168" height="34" rx="8"/>
+<text class="sub" x="336" y="178" style="font-size:13px;fill:#4a5a5a">secrets</text>
+<text class="lbl-e" x="500" y="115">1-line edit</text>
+<path class="async" d="M466,129 H534" marker-end="url(#a-e-jar)"/>
+<rect class="n-bad" x="540" y="24" width="430" height="210" rx="12"/>
+<text class="t-sm" x="755" y="57" style="fill:#c0392b">&#8230; costs a full release</text>
+<rect class="n-msg" x="565" y="76" width="380" height="42" rx="8"/>
+<text class="t-sm" x="755" y="103" style="font-size:15px">rebuild the jar</text>
+<rect class="n-msg" x="565" y="128" width="380" height="42" rx="8"/>
+<text class="t-sm" x="755" y="155" style="font-size:15px">redeploy it</text>
+<rect class="n-msg" x="565" y="180" width="380" height="42" rx="8"/>
+<text class="t-sm" x="755" y="207" style="font-size:15px">restart every instance</text>
+</svg>
 
 - A new BBQ question → **rebuild + redeploy**.
 - Prod vs staging differ → **a different jar per environment**.
@@ -204,12 +225,13 @@ Likely questions
 
 ## Exercise 1 — Wire the Client (10 min)
 
-With RabbitMQ running from setup, start discovery/config, then survey-service:
+With RabbitMQ running from setup, start config, then discovery, then survey-service:
 
 ```bash
 cd labs/bbq-wednesday
-(cd eureka-server  && ../mvnw spring-boot:run) &   # :8761
-(cd config-server  && ../mvnw spring-boot:run) &   # :8888
+# Config first. ENCRYPT_KEY now, so the secrets demo at minute 48 needs no restart:
+(cd config-server && ENCRYPT_KEY=bbq-workshop-key ../mvnw spring-boot:run) &   # :8888
+(cd eureka-server && ../mvnw spring-boot:run) &                                # :8761
 # Wait for config before starting its client:
 until curl -fsS localhost:8888/survey-service/default >/dev/null; do sleep 1; done
 (cd survey-service && ../mvnw spring-boot:run) &   # :8081
@@ -268,7 +290,7 @@ Likely questions
 Config Server can **encrypt** values so the backend holds ciphertext:
 
 ```bash
-# 1. the server needs a key. No key = every /encrypt call 500s.
+# 1. the key was set back in Exercise 1. No key = every /encrypt call 500s.
 ENCRYPT_KEY=bbq-workshop-key ./mvnw spring-boot:run
 
 # 2. confirm the key took — do this BEFORE you demo:

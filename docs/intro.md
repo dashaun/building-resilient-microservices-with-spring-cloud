@@ -109,41 +109,41 @@ Likely questions
 
 ## The Target Architecture
 
-<svg class="dg" viewBox="0 0 1000 585" xmlns="http://www.w3.org/2000/svg">
+<svg class="dg" viewBox="0 0 1000 510" xmlns="http://www.w3.org/2000/svg">
 <defs><marker id="a-g-arc" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#6db33f"/></marker><marker id="a-e-arc" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#c0392b"/></marker><marker id="a-w-arc" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#8fa0a0"/></marker></defs>
-<rect class="band" x="60" y="452" width="880" height="126" rx="16"/>
-<text class="lbl" x="500" y="477">every service above registers here and loads its config at startup</text>
-<rect class="n-infra" x="90" y="490" width="300" height="72" rx="12"/>
-<text class="t-sm" x="240" y="519" style="font-size:19px;fill:#4a5a5a">eureka-server</text>
-<text class="sub" x="240" y="541">:8761 &#183; service registry</text>
-<rect class="n-infra" x="610" y="490" width="300" height="72" rx="12"/>
-<text class="t-sm" x="760" y="519" style="font-size:19px;fill:#4a5a5a">config-server</text>
-<text class="sub" x="760" y="541">:8888 &#183; centralized config</text>
-<path class="weak" d="M500,424 V444" style="stroke-width:2;stroke-dasharray:5 5" marker-end="url(#a-w-arc)"/>
-<rect class="n-plain" x="370" y="6" width="260" height="62" rx="12"/>
-<text class="t" x="500" y="34">survey-ui</text>
-<text class="sub" x="500" y="56">browser &#183; Chart.js</text>
-<path class="flow" d="M500,68 V112" marker-end="url(#a-g-arc)"/>
-<rect class="n-fill" x="310" y="118" width="380" height="78" rx="12"/>
-<text class="t-on" x="500" y="152">gateway</text>
-<text class="sub-on" x="500" y="177">:8080 &#183; security &#183; rate limit &#183; routing</text>
-<path class="flow" d="M500,196 V216 Q500,226 490,226 H185 Q175,226 175,236 V252" marker-end="url(#a-g-arc)"/>
-<path class="flow" d="M500,196 V216 Q500,226 510,226 H815 Q825,226 825,236 V252" marker-end="url(#a-g-arc)"/>
-<rect class="n-app" x="40" y="264" width="270" height="92" rx="12"/>
-<text class="t" x="175" y="297">survey-service</text>
-<text class="port" x="175" y="320">:8081 &#183; :8082</text>
-<text class="sub" x="175" y="342">accepts votes &#183; publishes events</text>
-<rect class="n-app" x="690" y="264" width="270" height="92" rx="12"/>
-<text class="t" x="825" y="297">results-service</text>
-<text class="port" x="825" y="320">:8083</text>
-<text class="sub" x="825" y="342">consumes events &#183; live tally</text>
-<path class="async" d="M316,310 H387" marker-end="url(#a-e-arc)"/>
-<path class="async" d="M609,310 H682" marker-end="url(#a-e-arc)"/>
-<rect class="n-msg" x="395" y="282" width="210" height="56" rx="28"/>
-<text class="t-sm" x="500" y="306" style="fill:#c0392b">RabbitMQ</text>
-<text class="mono" x="500" y="326" style="fill:#b45a4d">bbq-votes</text>
-<text class="lbl" x="500" y="400">HTTP tally read &#183; the Resilience4j lab</text>
-<path class="weak" d="M175,356 V404 Q175,414 185,414 H815 Q825,414 825,404 V366" marker-end="url(#a-w-arc)"/>
+<rect class="band" x="60" y="406" width="880" height="100" rx="16"/>
+<text class="lbl" x="500" y="427">every service above registers here and loads its config at startup</text>
+<rect class="n-infra" x="90" y="438" width="300" height="60" rx="12"/>
+<text class="t-sm" x="240" y="464" style="font-size:19px;fill:#4a5a5a">eureka-server</text>
+<text class="sub" x="240" y="485">:8761 &#183; service registry</text>
+<rect class="n-infra" x="610" y="438" width="300" height="60" rx="12"/>
+<text class="t-sm" x="760" y="464" style="font-size:19px;fill:#4a5a5a">config-server</text>
+<text class="sub" x="760" y="485">:8888 &#183; centralized config</text>
+<path class="weak" d="M500,384 V400" style="stroke-width:2;stroke-dasharray:5 5" marker-end="url(#a-w-arc)"/>
+<rect class="n-plain" x="370" y="4" width="260" height="58" rx="12"/>
+<text class="t" x="500" y="30">survey-ui</text>
+<text class="sub" x="500" y="51">browser &#183; Chart.js</text>
+<path class="flow" d="M500,62 V96" marker-end="url(#a-g-arc)"/>
+<rect class="n-fill" x="310" y="106" width="380" height="72" rx="12"/>
+<text class="t-on" x="500" y="137">gateway</text>
+<text class="sub-on" x="500" y="161">:8080 &#183; security &#183; rate limit &#183; routing</text>
+<path class="flow" d="M500,178 V196 Q500,206 490,206 H185 Q175,206 175,216 V228" marker-end="url(#a-g-arc)"/>
+<path class="flow" d="M500,178 V196 Q500,206 510,206 H815 Q825,206 825,216 V228" marker-end="url(#a-g-arc)"/>
+<rect class="n-app" x="40" y="236" width="270" height="86" rx="12"/>
+<text class="t" x="175" y="266">survey-service</text>
+<text class="port" x="175" y="288">:8081 &#183; :8082</text>
+<text class="sub" x="175" y="309">accepts votes &#183; publishes events</text>
+<rect class="n-app" x="690" y="236" width="270" height="86" rx="12"/>
+<text class="t" x="825" y="266">results-service</text>
+<text class="port" x="825" y="288">:8083</text>
+<text class="sub" x="825" y="309">consumes events &#183; live tally</text>
+<path class="async" d="M316,279 H387" marker-end="url(#a-e-arc)"/>
+<path class="async" d="M609,279 H682" marker-end="url(#a-e-arc)"/>
+<rect class="n-msg" x="395" y="252" width="210" height="54" rx="27"/>
+<text class="t-sm" x="500" y="276" style="fill:#c0392b">RabbitMQ</text>
+<text class="mono" x="500" y="295" style="fill:#b45a4d">bbq-votes</text>
+<text class="lbl" x="500" y="360">HTTP tally read &#183; the Resilience4j lab</text>
+<path class="weak" d="M175,322 V364 Q175,374 185,374 H815 Q825,374 825,364 V332" marker-end="url(#a-w-arc)"/>
 </svg>
 
 One public door. Two services that talk twice — once by event, once by HTTP.

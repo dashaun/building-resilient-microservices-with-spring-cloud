@@ -161,13 +161,36 @@ Likely questions
 
 ## Propagation Comes for Free
 
-```text
-HTTP:   gateway ──▶ survey-service
-        header: traceparent: 00-<trace-id>-<span-id>-01
-
-RABBIT: survey-service ──▶ [ bbq-votes ] ──▶ results-service
-        the trace-id rides in the message headers
-```
+<svg class="dg" viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a-g-pr" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#6db33f"/></marker><marker id="a-e-pr" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#c0392b"/></marker></defs>
+<rect class="n-app" x="14" y="70" width="185" height="90" rx="12"/>
+<text class="t-sm" x="106" y="108">gateway</text>
+<text class="sub" x="106" y="132">:8080</text>
+<text class="lbl-g" x="241" y="98">HTTP</text>
+<path class="flow" d="M205,115 H278" marker-end="url(#a-g-pr)"/>
+<rect class="n-app" x="284" y="70" width="185" height="90" rx="12"/>
+<text class="t-sm" x="376" y="108">survey-service</text>
+<text class="sub" x="376" y="132">publishes the vote</text>
+<text class="lbl-e" x="511" y="98">publish</text>
+<path class="async" d="M475,115 H548" marker-end="url(#a-e-pr)"/>
+<rect class="n-msg" x="554" y="88" width="160" height="54" rx="27"/>
+<text class="t-sm" x="634" y="110" style="font-size:15px;fill:#c0392b">RabbitMQ</text>
+<text class="mono" x="634" y="130" style="fill:#b45a4d">bbq-votes</text>
+<text class="lbl-e" x="756" y="98">consume</text>
+<path class="async" d="M720,115 H793" marker-end="url(#a-e-pr)"/>
+<rect class="n-app" x="799" y="70" width="185" height="90" rx="12"/>
+<text class="t-sm" x="891" y="108">results-service</text>
+<text class="sub" x="891" y="132">joins the same trace</text>
+<path class="thin" d="M250,126 V190" stroke-dasharray="5 5"/>
+<path class="thin" d="M634,142 V162 Q634,172 644,172 H740 Q750,172 750,182 V190" stroke-dasharray="5 5"/>
+<rect class="n-plain" x="90" y="196" width="320" height="58" rx="10"/>
+<text class="lbl" x="250" y="217" letter-spacing="1.3">HTTP HEADER</text>
+<text class="mono" x="250" y="240">traceparent: 00-<tspan style="font-weight:700;fill:#191e1e">4f3c8e21</tspan>-a1b2c3d4-01</text>
+<rect class="n-plain" x="590" y="196" width="320" height="58" rx="10"/>
+<text class="lbl" x="750" y="217" letter-spacing="1.3">MESSAGE HEADER</text>
+<text class="mono" x="750" y="240">traceparent: 00-<tspan style="font-weight:700;fill:#191e1e">4f3c8e21</tspan>-9e8f7a6b-01</text>
+<text class="lbl-g" x="500" y="284">same trace-id, a new span-id per hop &#8212; and no code to write</text>
+</svg>
 
 The async consume in results-service joins the **same** trace as the
 HTTP request that published it. No code changes.

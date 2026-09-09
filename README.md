@@ -98,7 +98,6 @@ Then open:
 ## Credits
 
 Domain adapted from [ryanjbaxter/spring-survey-app](https://github.com/ryanjbaxter/spring-survey-app).
-Workshop by [DaShaun Carter](https://dashaun.com).
 
 ## Verification and recovery
 

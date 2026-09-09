@@ -39,12 +39,40 @@ Likely questions
 
 ## The Spring Cloud Stream Model
 
-```text
-   java.util.function          binding            destination
-   ─────────────────    ──────────────────    ───────────────
-   Supplier<T>   ──▶    surveyVote-out-0   ──▶   bbq-votes   (exchange)
-   Consumer<T>   ◀──    surveyVote-in-0    ◀──   bbq-votes
-```
+<svg class="dg" viewBox="0 0 1000 296" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a-e-scs" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#c0392b"/></marker></defs>
+<text class="lbl-e end" x="68" y="121" letter-spacing="1.3">PUBLISH</text>
+<text class="lbl-e end" x="68" y="205" letter-spacing="1.3">CONSUME</text>
+<rect class="band" x="80" y="40" width="265" height="210" rx="14"/>
+<text class="lbl" x="212" y="65" letter-spacing="1.3">JAVA.UTIL.FUNCTION</text>
+<rect class="n-app" x="96" y="82" width="233" height="68" rx="12"/>
+<text class="mono" x="212" y="110" style="font-size:15px;font-weight:700;fill:#191e1e">Supplier&lt;T&gt;</text>
+<text class="sub" x="212" y="132">you write this</text>
+<rect class="n-app" x="96" y="166" width="233" height="68" rx="12"/>
+<text class="mono" x="212" y="194" style="font-size:15px;font-weight:700;fill:#191e1e">Consumer&lt;T&gt;</text>
+<text class="sub" x="212" y="216">you write this too</text>
+<path class="async" d="M351,116 H394" marker-end="url(#a-e-scs)"/>
+<path class="async" d="M394,200 H351" marker-end="url(#a-e-scs)"/>
+<rect class="band" x="400" y="40" width="265" height="210" rx="14"/>
+<text class="lbl" x="532" y="65" letter-spacing="1.3">BINDING</text>
+<rect class="n-plain" x="416" y="82" width="233" height="68" rx="12"/>
+<text class="mono" x="532" y="110" style="font-size:15px;font-weight:700;fill:#191e1e">surveyVote-out-0</text>
+<text class="sub" x="532" y="132">out-0 &#183; outbound</text>
+<rect class="n-plain" x="416" y="166" width="233" height="68" rx="12"/>
+<text class="mono" x="532" y="194" style="font-size:15px;font-weight:700;fill:#191e1e">surveyVote-in-0</text>
+<text class="sub" x="532" y="216">in-0 &#183; inbound</text>
+<path class="async" d="M671,116 H714" marker-end="url(#a-e-scs)"/>
+<path class="async" d="M714,200 H671" marker-end="url(#a-e-scs)"/>
+<rect class="band" x="720" y="40" width="265" height="210" rx="14"/>
+<text class="lbl" x="852" y="65" letter-spacing="1.3">DESTINATION</text>
+<rect class="n-msg" x="736" y="82" width="233" height="68" rx="12"/>
+<text class="mono" x="852" y="110" style="font-size:15px;font-weight:700;fill:#c0392b">bbq-votes</text>
+<text class="sub" x="852" y="132">the exchange</text>
+<rect class="n-msg" x="736" y="166" width="233" height="68" rx="12"/>
+<text class="mono" x="852" y="194" style="font-size:15px;font-weight:700;fill:#c0392b">bbq-votes</text>
+<text class="sub" x="852" y="216">a queue bound to it</text>
+<text class="lbl-g" x="532" y="278">you write the two functions &#8212; the binder generates everything to their right</text>
+</svg>
 
 - Your code is **plain functions** — no broker API.
 - A **binder** maps functions ↔ the broker (RabbitMQ here).
@@ -172,7 +200,8 @@ curl -X POST localhost:8081/submit -H 'Content-Type: application/json' \
 curl localhost:8083/burnt-ends
 ```
 
-Then open **http://localhost:15672** (guest/guest) → Exchanges → `bbq-votes`.
+Then open **http://localhost:8080** — the chart moves as votes land.
+And **http://localhost:15672** (guest/guest) → Exchanges → `bbq-votes`.
 
 Notes:
 Minute 145-157.

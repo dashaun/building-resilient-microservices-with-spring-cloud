@@ -214,6 +214,7 @@ Run a **second** survey-service, then watch discovery work:
 (cd survey-service && SERVER_PORT=8082 ../mvnw spring-boot:run) &
 (cd results-service && ../mvnw spring-boot:run) &   # :8083
 (cd gateway && ../mvnw spring-boot:run) &           # :8080; Redis must be running
+(cd survey-ui && ../mvnw spring-boot:run) &         # :8091; the gateway's catch-all
 ```
 
 1. Open **http://localhost:8761** — see `SURVEY-SERVICE` with **two** instances.
