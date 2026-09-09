@@ -10,6 +10,8 @@ The domain is a reskin of Ryan Baxter's excellent
 [`spring-survey-app`](https://github.com/ryanjbaxter/spring-survey-app). The architecture
 is the real thing.
 
+![Workshop attendees in the training room](docs/images/workshop.png)
+
 ## Version Contract
 
 | Technology | Version |
