@@ -105,13 +105,29 @@ Likely questions
 
 ## Cross-Cutting #2: Security Belongs Here
 
-```text
-        ┌─────────────────────────────────────────┐
-        │  gateway: validate JWT once, at the edge │
-        └───────────────────┬─────────────────────┘
-             trusted network │  (downstream services stay simple)
-        survey-service   results-service   survey-ui
-```
+<svg class="dg" viewBox="0 0 1000 405" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a-g-gw" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#6db33f"/></marker></defs>
+<rect class="n-plain" x="370" y="6" width="260" height="56" rx="12"/>
+<text class="t-sm" x="500" y="31">client</text>
+<text class="mono" x="500" y="51">Authorization: Bearer &#8230;</text>
+<path class="flow" d="M500,62 V96" marker-end="url(#a-g-gw)"/>
+<rect class="n-fill" x="200" y="102" width="600" height="96" rx="14"/>
+<text class="t-on" x="500" y="143">gateway</text>
+<text class="sub-on" x="500" y="171">:8080 &#183; validates the JWT once, at the edge</text>
+<path class="flow" d="M500,198 V242" marker-end="url(#a-g-gw)"/>
+<text class="lbl start" x="520" y="226">below this line, nobody re-validates</text>
+<rect class="band" x="60" y="252" width="880" height="140" rx="16"/>
+<text class="lbl" x="500" y="279">trusted network &#8212; downstream services stay simple</text>
+<rect class="n-plain" x="90" y="296" width="260" height="72" rx="12"/>
+<text class="t-sm" x="220" y="329">survey-service</text>
+<text class="port" x="220" y="353">:8081 &#183; :8082</text>
+<rect class="n-plain" x="370" y="296" width="260" height="72" rx="12"/>
+<text class="t-sm" x="500" y="329">results-service</text>
+<text class="port" x="500" y="353">:8083</text>
+<rect class="n-plain" x="650" y="296" width="260" height="72" rx="12"/>
+<text class="t-sm" x="780" y="329">survey-ui</text>
+<text class="port" x="780" y="353">:8091</text>
+</svg>
 
 Authenticate **once**, at the front door. Downstream services don't
 each re-implement auth — they trust the perimeter.

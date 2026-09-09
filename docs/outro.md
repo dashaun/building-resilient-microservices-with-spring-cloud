@@ -2,14 +2,37 @@
 
 ## What We Built
 
-```text
-survey-ui ─▶ gateway ─▶ survey-service ─▶ results-service
-             (auth,     (config, discovery,   (config, discovery,
-              rate,      resilience, publish)   consume, tally)
-              breaker)          │
-                         [ RabbitMQ: bbq-votes ]
-          eureka-server · config-server · Grafana LGTM (traces)
-```
+<svg class="dg inv" viewBox="0 0 1000 340" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a-wh-out" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#ffffff"/></marker><marker id="a-we-out" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#ffe2da"/></marker></defs>
+<rect class="n-plain" x="15" y="40" width="210" height="96" rx="12"/>
+<text class="t-sm" x="120" y="80">survey-ui</text>
+<text class="sub" x="120" y="104">Chart.js in the browser</text>
+<path class="flow" d="M231,88 H262" marker-end="url(#a-wh-out)"/>
+<rect class="n-app" x="268" y="40" width="210" height="96" rx="12"/>
+<text class="t-sm" x="373" y="73">gateway</text>
+<text class="sub" x="373" y="97">auth &#183; rate limit</text>
+<text class="sub" x="373" y="117">edge breaker</text>
+<path class="flow" d="M484,88 H515" marker-end="url(#a-wh-out)"/>
+<rect class="n-app" x="521" y="40" width="210" height="96" rx="12"/>
+<text class="t-sm" x="626" y="73">survey-service</text>
+<text class="sub" x="626" y="97">config &#183; discovery</text>
+<text class="sub" x="626" y="117">resilience &#183; publish</text>
+<path class="flow" d="M737,88 H768" marker-end="url(#a-wh-out)"/>
+<rect class="n-app" x="774" y="40" width="210" height="96" rx="12"/>
+<text class="t-sm" x="879" y="73">results-service</text>
+<text class="sub" x="879" y="97">config &#183; discovery</text>
+<text class="sub" x="879" y="117">consume &#183; tally</text>
+<path class="async" d="M626,136 V200 Q626,210 636,210 H653" marker-end="url(#a-we-out)"/>
+<rect class="n-msg" x="665" y="186" width="170" height="48" rx="24"/>
+<text class="t-sm" x="750" y="207" style="font-size:15px">RabbitMQ</text>
+<text class="mono" x="750" y="226">bbq-votes</text>
+<path class="async" d="M835,210 H869 Q879,210 879,200 V150" marker-end="url(#a-we-out)"/>
+<rect class="band" x="15" y="256" width="969" height="70" rx="16"/>
+<text class="lbl" x="500" y="281">the plumbing under all of it</text>
+<text class="t-sm" x="180" y="309" style="font-size:15px">eureka-server :8761</text>
+<text class="t-sm" x="500" y="309" style="font-size:15px">config-server :8888</text>
+<text class="t-sm" x="820" y="309" style="font-size:15px">Grafana LGTM &#183; traces</text>
+</svg>
 
 Six services. Six Spring Cloud capabilities. One BBQ argument.
 

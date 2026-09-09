@@ -17,11 +17,27 @@ Likely questions
 
 ## The Problem: One Slow Dependency
 
-```text
-survey-service ── HTTP ──▶ results-service  (slow / down)
-      │
-      └─ threads block waiting … pool exhausts … survey-service dies too
-```
+<svg class="dg" viewBox="0 0 1000 236" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a-g-res" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#6db33f"/></marker><marker id="a-e-res" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#c0392b"/></marker></defs>
+<rect class="n-app" x="80" y="30" width="300" height="96" rx="12"/>
+<text class="t" x="230" y="70">survey-service</text>
+<text class="sub" x="230" y="96">healthy &#8212; for now</text>
+<rect class="n-bad" x="620" y="30" width="300" height="96" rx="12"/>
+<text class="t" x="770" y="70">results-service</text>
+<text class="lbl-e" x="770" y="96">slow / down</text>
+<text class="mono" x="497" y="58">HTTP GET /tally</text>
+<path class="flow" d="M386,72 H608" marker-end="url(#a-g-res)"/>
+<text class="lbl-e" x="497" y="94">no timeout &#8212; the thread waits</text>
+<path class="async" d="M230,126 V158" marker-end="url(#a-e-res)"/>
+<rect class="n-msg" x="115" y="166" width="230" height="52" rx="10"/>
+<text class="t-sm" x="230" y="198" style="fill:#c0392b">threads block</text>
+<path class="async" d="M351,192 H379" marker-end="url(#a-e-res)"/>
+<rect class="n-msg" x="385" y="166" width="230" height="52" rx="10"/>
+<text class="t-sm" x="500" y="198" style="fill:#c0392b">pool exhausts</text>
+<path class="async" d="M621,192 H649" marker-end="url(#a-e-res)"/>
+<rect class="n-msg" x="655" y="166" width="230" height="52" rx="10"/>
+<text class="t-sm" x="770" y="198" style="fill:#c0392b">survey-service dies</text>
+</svg>
 
 - A call with no timeout blocks a thread.
 - Enough blocked threads → the **caller** falls over.
@@ -60,15 +76,27 @@ Likely questions
 
 ## The Circuit Breaker's Three States
 
-```text
-        failures exceed threshold
- CLOSED ───────────────────────────▶ OPEN
-   ▲                                   │  (fail fast, call fallback)
-   │ success                          │  wait-duration elapses
-   │                                   ▼
-   └──────────── HALF-OPEN ◀───────────┘
-        (let a few trial calls through)
-```
+<svg class="dg" viewBox="0 0 1000 420" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a-g-cb" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#6db33f"/></marker><marker id="a-e-cb" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#c0392b"/></marker><marker id="a-w-cb" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#8fa0a0"/></marker></defs>
+<rect class="n-app" x="60" y="55" width="280" height="112" rx="14"/>
+<text class="t-lg" x="200" y="106" style="fill:#59942f">CLOSED</text>
+<text class="sub" x="200" y="134">calls flow &#183; failures counted</text>
+<rect class="n-msg" x="660" y="55" width="280" height="112" rx="14"/>
+<text class="t-lg" x="800" y="106" style="fill:#c0392b">OPEN</text>
+<text class="sub" x="800" y="134">fail fast &#183; return the fallback</text>
+<rect class="n-warn" x="360" y="268" width="280" height="112" rx="14"/>
+<text class="t-lg" x="500" y="319" style="fill:#b3701f">HALF-OPEN</text>
+<text class="sub" x="500" y="347">a few trial calls get through</text>
+<text class="lbl-e" x="496" y="96">failure rate exceeds threshold</text>
+<path class="async" d="M346,111 H646" marker-end="url(#a-e-cb)"/>
+<path class="weak" d="M800,167 V296 Q800,324 772,324 H658" marker-end="url(#a-w-cb)"/>
+<text class="lbl start" x="818" y="216">wait-duration</text>
+<text class="lbl start" x="818" y="234">elapses</text>
+<path class="flow" d="M354,324 H228 Q200,324 200,296 V179" marker-end="url(#a-g-cb)"/>
+<text class="lbl-g end" x="182" y="216">trial calls</text>
+<text class="lbl-g end" x="182" y="234">succeed</text>
+<text class="lbl-e" x="500" y="407">a trial call fails &#8594; straight back to OPEN</text>
+</svg>
 
 - **Closed** — calls flow, failures counted.
 - **Open** — stop calling; return the fallback immediately.

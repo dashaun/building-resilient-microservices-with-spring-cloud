@@ -49,6 +49,48 @@
         .reveal section[data-background-color="#c0392b"] h3,
         .reveal section[data-background-color="#c0392b"] p { color: white; }
         .reveal .progress, .reveal .controls { color: var(--spring-green); }
+
+        /* ---- slide diagrams (svg.dg) ---- */
+        .reveal svg.dg { display: block; margin: 0 auto; width: 100%; height: auto; font-family: 'Open Sans', sans-serif; }
+        .dg text { text-anchor: middle; }
+        .dg .n-app   { fill: #ffffff; stroke: var(--spring-green); stroke-width: 2.5; }
+        .dg .n-plain { fill: #ffffff; stroke: #cfd8d8; stroke-width: 2; }
+        .dg .n-fill  { fill: var(--spring-green); }
+        .dg .n-infra { fill: #f4f8f8; stroke: #b9c6c6; stroke-width: 2; }
+        .dg .n-msg   { fill: #fdf3f1; stroke: var(--bbq-ember); stroke-width: 2; }
+        .dg .n-bad   { fill: #fdf0ee; stroke: var(--bbq-ember); stroke-width: 2.5; stroke-dasharray: 7 5; }
+        .dg .n-warn  { fill: #fdf6ec; stroke: #d9822b; stroke-width: 2.5; }
+        .dg .band    { fill: #fafcfa; stroke: #dde5e5; stroke-width: 2; stroke-dasharray: 7 6; }
+        .dg .track   { fill: #f1f5f5; }
+        .dg .t       { font-size: 21px;   font-weight: 700; fill: var(--spring-dark); }
+        .dg .t-sm    { font-size: 17px;   font-weight: 700; fill: var(--spring-dark); }
+        .dg .t-lg    { font-size: 25px;   font-weight: 700; fill: var(--spring-dark); }
+        .dg .t-on    { font-size: 23px;   font-weight: 700; fill: #ffffff; }
+        .dg .port    { font-size: 14px;   font-weight: 700; fill: var(--spring-green); }
+        .dg .sub     { font-size: 12.5px; fill: #7b8a8a; }
+        .dg .sub-on  { font-size: 13.5px; fill: #eaf5e2; }
+        .dg .lbl     { font-size: 13px;   fill: #7b8a8a; }
+        .dg .lbl-g   { font-size: 13px;   font-weight: 700; fill: #59942f; }
+        .dg .lbl-e   { font-size: 13px;   font-weight: 700; fill: var(--bbq-ember); }
+        .dg .lbl-a   { font-size: 13px;   font-weight: 700; fill: #b3701f; }
+        .dg .mono    { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 12.5px; fill: #7b8a8a; }
+        .dg .flow    { stroke: var(--spring-green); stroke-width: 2.5; fill: none; }
+        .dg .async   { stroke: var(--bbq-ember);    stroke-width: 2.5; fill: none; }
+        .dg .weak    { stroke: #8fa0a0; stroke-width: 2.5; stroke-dasharray: 7 5; fill: none; }
+        .dg .warn    { stroke: #d9822b; stroke-width: 2.5; fill: none; }
+        .dg .thin    { stroke: #c8d2d2; stroke-width: 2; fill: none; stroke-linejoin: round; }
+        .dg .start   { text-anchor: start; }
+        .dg .end     { text-anchor: end; }
+        /* on a green section background */
+        .dg.inv .n-app   { fill: rgba(255,255,255,.15); stroke: #ffffff; }
+        .dg.inv .n-plain { fill: rgba(255,255,255,.09); stroke: rgba(255,255,255,.6); }
+        .dg.inv .n-msg   { fill: rgba(255,255,255,.15); stroke: #ffe2da; }
+        .dg.inv .band    { fill: rgba(255,255,255,.08); stroke: rgba(255,255,255,.5); }
+        .dg.inv .t, .dg.inv .t-sm, .dg.inv .t-lg { fill: #ffffff; }
+        .dg.inv .port, .dg.inv .lbl-g { fill: #eaf5e2; }
+        .dg.inv .sub, .dg.inv .lbl, .dg.inv .mono { fill: rgba(255,255,255,.85); }
+        .dg.inv .flow  { stroke: #ffffff; }
+        .dg.inv .async { stroke: #ffe2da; }
     </style>
 </head>
 <body>

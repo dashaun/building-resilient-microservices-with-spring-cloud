@@ -186,16 +186,36 @@ Likely questions
 
 ## Answer 4 — Events, Not Calls
 
-```text
-POST /submit ─▶ survey-service
-                   │ save vote (H2)
-                   │ publish SurveyVoteEvent ─▶ [ bbq-votes ]
-                   ▼                                  │
-                200 OK (after publish)                  ▼
-                                          results-service consumes
-                                          increments Tally
-GET /burnt-ends ─▶ results-service  ─▶  {questionId: "burnt-ends", answerCounts: {"Joe's Kansas City": 1}, totalResponses: 1}
-```
+<svg class="dg" viewBox="0 0 1000 378" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a-g-str" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#6db33f"/></marker><marker id="a-e-str" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#c0392b"/></marker><marker id="a-w-str" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#8fa0a0"/></marker></defs>
+<rect class="n-plain" x="20" y="60" width="180" height="60" rx="12"/>
+<text class="mono" x="110" y="95" style="font-size:13px;fill:#4a5a5a">POST /submit</text>
+<path class="flow" d="M206,90 H238" marker-end="url(#a-g-str)"/>
+<rect class="n-app" x="250" y="46" width="230" height="92" rx="12"/>
+<text class="t-sm" x="365" y="77">survey-service</text>
+<text class="sub" x="365" y="101">saves the vote (H2)</text>
+<text class="sub" x="365" y="123">publishes the event</text>
+<path class="async" d="M486,90 H518" marker-end="url(#a-e-str)"/>
+<rect class="n-msg" x="530" y="62" width="180" height="56" rx="28"/>
+<text class="t-sm" x="620" y="87" style="font-size:15px;fill:#c0392b">RabbitMQ</text>
+<text class="mono" x="620" y="107" style="fill:#b45a4d">bbq-votes</text>
+<path class="async" d="M716,90 H748" marker-end="url(#a-e-str)"/>
+<rect class="n-app" x="760" y="46" width="220" height="92" rx="12"/>
+<text class="t-sm" x="870" y="77">results-service</text>
+<text class="sub" x="870" y="101">consumes the event</text>
+<text class="sub" x="870" y="123">increments the Tally</text>
+<path class="flow" d="M310,138 V180 Q310,190 300,190 H120 Q110,190 110,180 V134" marker-end="url(#a-g-str)"/>
+<text class="lbl" x="250" y="212">200 OK &#8212; returned after the publish, not after the tally</text>
+<path class="weak" d="M870,138 V262" marker-end="url(#a-w-str)"/>
+<text class="lbl end" x="856" y="205">from the tally</text>
+<rect class="n-plain" x="20" y="286" width="230" height="58" rx="12"/>
+<text class="mono" x="135" y="321" style="font-size:13px;fill:#4a5a5a">GET /burnt-ends</text>
+<path class="flow" d="M256,315 H320" marker-end="url(#a-g-str)"/>
+<rect class="n-plain" x="332" y="268" width="648" height="94" rx="12"/>
+<text class="mono start" x="356" y="298" style="font-size:13px;fill:#4a5a5a">{ "questionId": "burnt-ends",</text>
+<text class="mono start" x="372" y="320" style="font-size:13px;fill:#4a5a5a">"answerCounts": { "Joe's Kansas City": 1 },</text>
+<text class="mono start" x="372" y="342" style="font-size:13px;fill:#4a5a5a">"totalResponses": 1 }</text>
+</svg>
 
 survey-service never waited for results-service. The broker carried the news.
 

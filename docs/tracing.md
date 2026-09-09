@@ -40,13 +40,31 @@ Likely questions
 
 ## Traces and Spans
 
-```text
-Trace  (one request, one trace-id)
- ├─ span  gateway            [■■■■■■■■■■■■■■■■■■]  120ms
- │   ├─ span survey-service  [   ■■■■■■■■■■■   ]   80ms
- │   │   └─ span results-svc [      ■■■■■     ]   30ms  (HTTP tally)
- │   └─ span publish→rabbit  [           ■    ]    2ms
-```
+<svg class="dg" viewBox="0 0 1000 262" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a-g-tr1" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#6db33f"/></marker></defs>
+<text class="t-sm start" x="20" y="30">Trace</text>
+<text class="lbl end" x="980" y="30">one trace-id, end to end</text>
+<path d="M20,44 H980" stroke="#e6ecec" stroke-width="2" fill="none"/>
+<path class="thin" d="M30,88 V125 H44"/>
+<path class="thin" d="M30,125 V225 H44"/>
+<path class="thin" d="M58,138 V175 H72"/>
+<rect class="track" x="450" y="62" width="450" height="26" rx="4"/>
+<rect x="450" y="62" width="450" height="26" rx="4" fill="#6db33f" opacity="1"/>
+<text class="start" x="20" y="80" font-size="15" font-weight="700" fill="#191e1e">gateway<tspan font-weight="400" font-size="13" fill="#93a2a2"> </tspan></text>
+<text class="mono end" x="980" y="80" style="fill:#4a5a5a">120ms</text>
+<rect class="track" x="450" y="112" width="450" height="26" rx="4"/>
+<rect x="525" y="112" width="300" height="26" rx="4" fill="#6db33f" opacity=".8"/>
+<text class="start" x="48" y="130" font-size="15" font-weight="700" fill="#191e1e">survey-service<tspan font-weight="400" font-size="13" fill="#93a2a2"> </tspan></text>
+<text class="mono end" x="980" y="130" style="fill:#4a5a5a">80ms</text>
+<rect class="track" x="450" y="162" width="450" height="26" rx="4"/>
+<rect x="600" y="162" width="113" height="26" rx="4" fill="#6db33f" opacity=".62"/>
+<text class="start" x="76" y="180" font-size="15" font-weight="700" fill="#191e1e">results-service<tspan font-weight="400" font-size="13" fill="#93a2a2"> &#183; HTTP tally</tspan></text>
+<text class="mono end" x="980" y="180" style="fill:#4a5a5a">30ms</text>
+<rect class="track" x="450" y="212" width="450" height="26" rx="4"/>
+<rect x="825" y="212" width="8" height="26" rx="4" fill="#c0392b" opacity="1"/>
+<text class="start" x="48" y="230" font-size="15" font-weight="700" fill="#c0392b">publish<tspan font-weight="400" font-size="13" fill="#b45a4d"> &#8594; bbq-votes</tspan></text>
+<text class="mono end" x="980" y="230" style="fill:#4a5a5a">2ms</text>
+</svg>
 
 - **Trace** — the whole request, one id end to end.
 - **Span** — one unit of work, with parent, timing, tags.
@@ -167,13 +185,31 @@ Likely questions
 
 ## Answer 6 — One Request, One Timeline
 
-```text
-Trace 4f3c… (total 142ms)
- gateway            POST /survey-service/submit      ■■■■■■■■■■■■■■  142ms
-  └ survey-service  POST /submit                       ■■■■■■■■■■     98ms
-     └ StreamBridge publish → bbq-votes                    ■           3ms
-        └ results-service  consume surveyVote-in-0          ■■■■■■     41ms
-```
+<svg class="dg" viewBox="0 0 1000 262" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a-g-tr2" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#6db33f"/></marker></defs>
+<text class="t-sm start" x="20" y="30">Trace 4f3c&#8230;</text>
+<text class="lbl end" x="980" y="30">total 142ms</text>
+<path d="M20,44 H980" stroke="#e6ecec" stroke-width="2" fill="none"/>
+<path class="thin" d="M30,88 V125 H44"/>
+<path class="thin" d="M58,138 V175 H72"/>
+<path class="thin" d="M86,188 V225 H100"/>
+<rect class="track" x="450" y="62" width="450" height="26" rx="4"/>
+<rect x="450" y="62" width="450" height="26" rx="4" fill="#6db33f" opacity="1"/>
+<text class="start" x="20" y="80" font-size="15" font-weight="700" fill="#191e1e">gateway<tspan font-weight="400" font-size="13" fill="#93a2a2"> POST /survey-service/submit</tspan></text>
+<text class="mono end" x="980" y="80" style="fill:#4a5a5a">142ms</text>
+<rect class="track" x="450" y="112" width="450" height="26" rx="4"/>
+<rect x="488" y="112" width="311" height="26" rx="4" fill="#6db33f" opacity=".8"/>
+<text class="start" x="48" y="130" font-size="15" font-weight="700" fill="#191e1e">survey-service<tspan font-weight="400" font-size="13" fill="#93a2a2"> POST /submit</tspan></text>
+<text class="mono end" x="980" y="130" style="fill:#4a5a5a">98ms</text>
+<rect class="track" x="450" y="162" width="450" height="26" rx="4"/>
+<rect x="751" y="162" width="10" height="26" rx="4" fill="#c0392b" opacity="1"/>
+<text class="start" x="76" y="180" font-size="15" font-weight="700" fill="#c0392b">StreamBridge<tspan font-weight="400" font-size="13" fill="#b45a4d"> publish &#8594; bbq-votes</tspan></text>
+<text class="mono end" x="980" y="180" style="fill:#4a5a5a">3ms</text>
+<rect class="track" x="450" y="212" width="450" height="26" rx="4"/>
+<rect x="767" y="212" width="130" height="26" rx="4" fill="#c0392b" opacity=".7"/>
+<text class="start" x="104" y="230" font-size="15" font-weight="700" fill="#c0392b">results-service<tspan font-weight="400" font-size="13" fill="#b45a4d"> consume surveyVote-in-0</tspan></text>
+<text class="mono end" x="980" y="230" style="fill:#4a5a5a">41ms</text>
+</svg>
 
 Illustrative timing: actual span names and durations vary. H2 method spans
 require additional instrumentation and are not created by this lab.

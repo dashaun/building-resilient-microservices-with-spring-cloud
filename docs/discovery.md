@@ -40,14 +40,23 @@ Likely questions
 
 ## Eureka: A Live Phone Book
 
-```text
-   register (I'm survey-service @ 10.0.0.7:8081)
-        │                    ┌────────────────┐
-   ┌────▼─────┐   heartbeat  │  eureka-server │  :8761
-   │ services │─────────────▶│    registry    │
-   └────▲─────┘              └────────────────┘
-        │  fetch registry (who is results-service?)
-```
+<svg class="dg" viewBox="0 0 1000 268" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a-g-dis" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#6db33f"/></marker></defs>
+<rect class="n-plain" x="60" y="96" width="300" height="110" rx="12"/>
+<text class="t" x="210" y="140">your services</text>
+<text class="sub" x="210" y="166">survey &#183; results &#183; gateway</text>
+<rect class="n-app" x="640" y="96" width="300" height="110" rx="12"/>
+<text class="t" x="790" y="136">eureka-server</text>
+<text class="port" x="790" y="160">:8761</text>
+<text class="sub" x="790" y="182">the registry</text>
+<text class="mono" x="500" y="110">survey-service @ 10.0.0.7:8081</text>
+<text class="lbl-g" x="500" y="130">register &#183; heartbeat</text>
+<path class="flow" d="M366,140 H628" marker-end="url(#a-g-dis)"/>
+<path class="flow" d="M634,176 H372" marker-end="url(#a-g-dis)"/>
+<text class="lbl-g" x="500" y="198">fetch the registry</text>
+<text class="mono" x="500" y="216">who is results-service?</text>
+<text class="lbl" x="500" y="252">clients cache it &#8212; a registry blip does not stop traffic</text>
+</svg>
 
 - Services **register** on startup and **heartbeat** to stay listed.
 - Clients **fetch** the registry and cache it.

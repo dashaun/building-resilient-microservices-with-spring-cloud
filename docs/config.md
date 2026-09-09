@@ -40,15 +40,26 @@ Likely questions
 
 ## Spring Cloud Config: Two Halves
 
-```text
-        ┌──────────────────┐
-        │   config-server  │  :8888   reads a backend (git or filesystem)
-        └────────┬─────────┘
-                 │  HTTP: GET /survey-service/default
-        ┌────────▼─────────┐
-        │  config CLIENT   │  survey-service, results-service
-        └──────────────────┘
-```
+<svg class="dg" viewBox="0 0 1000 320" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a-g-cfg" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#6db33f"/></marker></defs>
+<text class="lbl start" x="12" y="48" letter-spacing="1.5">SERVER</text>
+<text class="lbl start" x="12" y="244" letter-spacing="1.5">CLIENTS</text>
+<rect class="n-app" x="290" y="8" width="420" height="88" rx="12"/>
+<text class="t" x="500" y="46">config-server</text>
+<text class="sub" x="500" y="71">:8888 &#183; reads a backend: git or the filesystem</text>
+<path class="flow" d="M500,96 V158"/>
+<rect x="320" y="112" width="360" height="34" rx="17" fill="#ffffff" stroke="#e2e9e9" stroke-width="2"/>
+<text class="mono" x="500" y="134">GET /survey-service/default</text>
+<path class="flow" d="M500,158 Q500,168 490,168 H310 Q300,168 300,178 V196" marker-end="url(#a-g-cfg)"/>
+<path class="flow" d="M500,158 Q500,168 510,168 H700 Q710,168 710,178 V196" marker-end="url(#a-g-cfg)"/>
+<rect class="n-app" x="150" y="204" width="300" height="76" rx="12"/>
+<text class="t" x="300" y="238">survey-service</text>
+<text class="port" x="300" y="263">:8081 &#183; :8082</text>
+<rect class="n-app" x="560" y="204" width="300" height="76" rx="12"/>
+<text class="t" x="710" y="238">results-service</text>
+<text class="port" x="710" y="263">:8083</text>
+<text class="lbl" x="500" y="306">each client asks by spring.application.name + active profile</text>
+</svg>
 
 - **Server** — one endpoint, backed by a versioned source of truth.
 - **Client** — asks for its config *by application name* at startup.
